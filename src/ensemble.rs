@@ -12,12 +12,26 @@ pub struct EnsembleBase<S: DataClone<Elem = R>>(ArrayBase<S, Ix2>);
 pub type Ensemble = EnsembleBase<OwnedRepr<R>>;
 
 impl<S: DataClone<Elem = R>> EnsembleBase<S> {
-    pub fn ensemble_size(&self) -> usize {
+    /// size of ensemble
+    pub fn size(&self) -> usize {
         self.rows()
     }
 
+    /// size of each state vector
     pub fn dim(&self) -> usize {
         self.cols()
+    }
+
+    /// immutable ensemble iterator
+    pub fn eiter(&self) -> iter::AxisIter<R, Ix1> {
+        self.axis_iter(Axis(0))
+    }
+
+    /// mutable ensemble iterator
+    pub fn eiter_mut(&mut self) -> iter::AxisIterMut<R, Ix1>
+        where S: DataMut<Elem = R>
+    {
+        self.axis_iter_mut(Axis(0))
     }
 }
 
