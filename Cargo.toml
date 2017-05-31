@@ -4,7 +4,9 @@ version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 [dependencies]
-num-complex = "*"
-ndarray = "*"
-ndarray-linalg = "*"
-ndarray-odeint = "*"
+rand = "0.3"
+num-complex = "0.1"
+ndarray = "0.9"
+ndarray-rand = "0.5"
+ndarray-linalg = "0.4.1"
+ndarray-odeint = "0.5.1"
