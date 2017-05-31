@@ -53,7 +53,10 @@ impl<S: DataClone<Elem = R>> EnsembleBase<S> {
             cov = cov + outer(&dx, &dx);
         }
         cov *= 1.0 / (m as f64 - 1.0);
-        Gaussian::new(c, cov)
+        Gaussian {
+            center: c,
+            cov: cov,
+        }
     }
 }
 

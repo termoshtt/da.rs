@@ -1,6 +1,4 @@
 
-#[macro_use]
-extern crate derive_new;
 extern crate rand;
 extern crate num_complex;
 extern crate ndarray;
