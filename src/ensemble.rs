@@ -3,8 +3,10 @@ use std::ops::*;
 use rand::distributions::*;
 use ndarray::*;
 use ndarray_rand::RandomExt;
+use ndarray_linalg::vector::outer;
 
 use super::types::*;
+use super::gaussian::Gaussian;
 
 /// Ensemble is saved as two-dimensional array
 #[derive(Debug, Clone)]
@@ -32,6 +34,26 @@ impl<S: DataClone<Elem = R>> EnsembleBase<S> {
         where S: DataMut<Elem = R>
     {
         self.axis_iter_mut(Axis(0))
+    }
+
+    /// center of ensemble
+    pub fn center(&self) -> Array<R, Ix1> {
+        self.mean(Axis(0))
+    }
+
+    /// regard ensemble as a Gaussian distribution
+    pub fn as_gaussian(&self) -> Gaussian {
+        // XXX this may be slow.
+        let c = self.center();
+        let n = self.dim();
+        let m = self.size();
+        let mut cov = Array::zeros((n, n));
+        for v in self.eiter() {
+            let dx = &v - &c;
+            cov = cov + outer(&dx, &dx);
+        }
+        cov *= 1.0 / (m as f64 - 1.0);
+        Gaussian::new(c, cov)
     }
 }
 
