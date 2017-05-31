@@ -84,7 +84,7 @@ impl<S: DataClone<Elem = R>> EnsembleBase<S> {
     pub fn isotropic_gaussian<S1>(center: &ArrayBase<S1, Ix1>, size: usize, noise: R) -> Self
     where
         S1: Data<Elem = R>,
-        S: DataOwned<Elem = R> + DataMut<Elem = R>,
+        S: DataOwned + DataMut,
     {
         let n = center.len();
         let dist = Normal::new(0.0, noise);
