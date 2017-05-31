@@ -9,3 +9,4 @@ extern crate ndarray_odeint;
 pub mod gaussian;
 pub mod ensemble;
 pub mod types;
+pub mod weight;
