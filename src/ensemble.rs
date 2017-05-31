@@ -1,4 +1,3 @@
-
 use ndarray::*;
 use ndarray_linalg::vector::outer;
 use ndarray_rand::RandomExt;
@@ -82,13 +81,14 @@ impl<S: DataClone<Elem = R>> DerefMut for EnsembleBase<S> {
 
 impl<S: DataClone<Elem = R>> EnsembleBase<S> {
     /// Generate ensemble as an isotropic Gaussian distribution
-    pub fn isotropic_gaussian<S1>(center: &ArrayBase<S1, Ix1>, size: usize, noise: R) -> Ensemble
+    pub fn isotropic_gaussian<S1>(center: &ArrayBase<S1, Ix1>, size: usize, noise: R) -> Self
     where
         S1: Data<Elem = R>,
+        S: DataOwned<Elem = R> + DataMut<Elem = R>,
     {
         let n = center.len();
         let dist = Normal::new(0.0, noise);
-        let dx = Array::random((size, n), dist);
+        let dx = ArrayBase::random((size, n), dist);
         (dx + center).into()
     }
 }
