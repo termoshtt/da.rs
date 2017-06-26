@@ -1,9 +1,7 @@
-data_assimilation
-==================
+da.rs: Data-Assimilation in Rust
+=================================
 
-[![Build Status](https://travis-ci.org/termoshtt/data_assimilation.svg?branch=master)](https://travis-ci.org/termoshtt/data_assimilation)
-
-Data Assimilation on Rust
+[![Build Status](https://travis-ci.org/termoshtt/da.rs.svg?branch=master)](https://travis-ci.org/termoshtt/da.rs)
 
 LICENCE
 -------
