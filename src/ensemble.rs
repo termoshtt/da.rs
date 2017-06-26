@@ -1,12 +1,12 @@
 
-use std::ops::*;
-use rand::distributions::*;
 use ndarray::*;
-use ndarray_rand::RandomExt;
 use ndarray_linalg::vector::outer;
+use ndarray_rand::RandomExt;
+use rand::distributions::*;
+use std::ops::*;
 
-use super::types::*;
 use super::gaussian::Gaussian;
+use super::types::*;
 
 /// Ensemble is saved as two-dimensional array
 #[derive(Debug, Clone)]
@@ -31,7 +31,8 @@ impl<S: DataClone<Elem = R>> EnsembleBase<S> {
 
     /// mutable ensemble iterator
     pub fn eiter_mut(&mut self) -> iter::AxisIterMut<R, Ix1>
-        where S: DataMut<Elem = R>
+    where
+        S: DataMut<Elem = R>,
     {
         self.axis_iter_mut(Axis(0))
     }
@@ -82,7 +83,8 @@ impl<S: DataClone<Elem = R>> DerefMut for EnsembleBase<S> {
 impl<S: DataClone<Elem = R>> EnsembleBase<S> {
     /// Generate ensemble as an isotropic Gaussian distribution
     pub fn isotropic_gaussian<S1>(center: &ArrayBase<S1, Ix1>, size: usize, noise: R) -> Ensemble
-        where S1: Data<Elem = R>
+    where
+        S1: Data<Elem = R>,
     {
         let n = center.len();
         let dist = Normal::new(0.0, noise);

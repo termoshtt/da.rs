@@ -1,4 +1,3 @@
-
 use num_complex::Complex;
 
 pub type R = f64;
