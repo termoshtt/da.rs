@@ -1,7 +1,7 @@
 
-use rand::*;
-use ndarray::*;
 use super::types::*;
+use ndarray::*;
+use rand::*;
 
 #[derive(Debug, Clone)]
 pub struct WeightBase<S: DataClone<Elem = R>>(ArrayBase<S, Ix1>);
@@ -29,7 +29,8 @@ impl<S: DataClone<Elem = R>> ::std::ops::DerefMut for WeightBase<S> {
 
 impl<S: DataClone<Elem = R>> WeightBase<S> {
     pub fn normalize(&mut self)
-        where S: DataMut
+    where
+        S: DataMut,
     {
         let n = 1.0 / self.iter().sum::<f64>();
         for x in self.iter_mut() {
@@ -38,20 +39,23 @@ impl<S: DataClone<Elem = R>> WeightBase<S> {
     }
 
     pub fn normalized(mut self) -> Self
-        where S: DataMut
+    where
+        S: DataMut,
     {
         self.normalize();
         self
     }
 
     pub fn uniform(n: usize) -> Self
-        where S: DataOwned
+    where
+        S: DataOwned,
     {
-        WeightBase(ArrayBase::from_vec(vec![1.0/n as f64; n]))
+        WeightBase(ArrayBase::from_vec(vec![1.0 / n as f64; n]))
     }
 
     pub fn random(n: usize) -> Self
-        where S: DataOwned + DataMut
+    where
+        S: DataOwned + DataMut,
     {
         let mut rng = thread_rng();
         let w = WeightBase((0..n).map(|_| rng.gen_range(0.0, 1.0)).collect());

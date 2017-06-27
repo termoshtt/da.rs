@@ -15,12 +15,14 @@ where
 pub type Gaussian = GaussianBase<OwnedRepr<R>, OwnedRepr<R>>;
 
 impl<S1, S2> GaussianBase<S1, S2>
-    where S1: DataClone<Elem = R>,
-          S2: DataClone<Elem = R>
+where
+    S1: DataClone<Elem = R>,
+    S2: DataClone<Elem = R>,
 {
     pub fn isotropic(n: usize, var: R) -> Self
-        where S1: DataOwned,
-              S2: DataOwned + DataMut
+    where
+        S1: DataOwned,
+        S2: DataOwned + DataMut,
     {
         let c = ArrayBase::zeros(n);
         let cov = var * ArrayBase::eye(n);
