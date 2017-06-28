@@ -52,7 +52,7 @@ impl<S: DataClone<Elem = R>> EnsembleBase<S> {
             let dx = &v - &c;
             cov = cov + outer(&dx, &dx);
         }
-        cov *= 1.0 / (m as f64 - 1.0);
+        cov *= 1.0 / (m as R - 1.0);
         Gaussian {
             center: c,
             cov: cov,

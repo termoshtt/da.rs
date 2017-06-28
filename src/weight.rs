@@ -1,4 +1,3 @@
-
 use super::types::*;
 use ndarray::*;
 use rand::*;
@@ -32,7 +31,7 @@ impl<S: DataClone<Elem = R>> WeightBase<S> {
     where
         S: DataMut,
     {
-        let n = 1.0 / self.iter().sum::<f64>();
+        let n = 1.0 / self.iter().sum::<R>();
         for x in self.iter_mut() {
             *x *= n;
         }
@@ -50,7 +49,7 @@ impl<S: DataClone<Elem = R>> WeightBase<S> {
     where
         S: DataOwned,
     {
-        WeightBase(ArrayBase::from_vec(vec![1.0 / n as f64; n]))
+        WeightBase(ArrayBase::from_vec(vec![1.0 / n as R; n]))
     }
 
     pub fn random(n: usize) -> Self
