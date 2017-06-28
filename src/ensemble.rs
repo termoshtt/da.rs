@@ -6,6 +6,7 @@ use std::ops::*;
 
 use super::gaussian::Gaussian;
 use super::types::*;
+use super::weight::Weight;
 
 /// Ensemble is saved as two-dimensional array
 #[derive(Debug, Clone)]
@@ -57,6 +58,10 @@ impl<S: DataClone<Elem = R>> EnsembleBase<S> {
             center: c,
             cov: cov,
         }
+    }
+
+    pub fn inject(&self, w: &Weight) -> Array1<R> {
+        self.dot(w.deref())
     }
 }
 
