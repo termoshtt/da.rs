@@ -1,6 +1,6 @@
 
 extern crate ndarray;
-extern crate data_assimilation as da;
+extern crate da;
 
 use ndarray::*;
 
@@ -12,7 +12,6 @@ fn size() {
     let xs = da::ensemble::Ensemble::isotropic_gaussian(&x0, m, 1.0);
     assert_eq!(xs.dim(), n);
     assert_eq!(xs.size(), m);
-    assert_eq!(xs.strides(), [n as isize, 1]);
 }
 
 #[test]
@@ -21,10 +20,10 @@ fn ensemble_iter() {
     let m = 10; // ensemble size
     let x0 = arr1(&[1.0, 2.0]);
     let mut xs = da::ensemble::Ensemble::isotropic_gaussian(&x0, m, 1.0);
-    for v in xs.eiter() {
+    for v in xs.ens_iter() {
         assert_eq!(v.len(), n);
     }
-    for v in xs.eiter_mut() {
+    for v in xs.ens_iter_mut() {
         assert_eq!(v.len(), n);
     }
 }
