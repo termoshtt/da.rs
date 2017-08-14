@@ -12,6 +12,10 @@ fn size() {
     let xs = da::ensemble::Ensemble::isotropic_gaussian(&x0, m, 1.0);
     assert_eq!(xs.dim(), n);
     assert_eq!(xs.size(), m);
+
+    let g = xs.as_gaussian();
+    assert_eq!(g.center.shape(), [n]);
+    assert_eq!(g.precision.shape(), [n, n]);
 }
 
 #[test]
