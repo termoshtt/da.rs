@@ -31,13 +31,17 @@ pub trait PDF {
     fn log_prob(&State) -> f64;
 }
 
-pub fn merge(a: &Gaussian, b: &Gaussian) -> Gaussian {
-    let prec = &a.prec + &b.prec;
-    let c = a.prec.dot(&a.center) + b.prec.dot(&b.center);
+fn solve_prec(p: &Precision, x: State) -> State {
     // FIXME `solve` uses LU decomposition
     // This code should be use Cholesky decomposition,
     // but corresponding interface is absent in ndarray-linalg
-    let f: Factorized<OwnedRepr<R>> = prec.factorize().unwrap();
-    let center = f.solve(Transpose::No, c).unwrap();
+    let f: Factorized<OwnedRepr<R>> = p.factorize().unwrap();
+    f.solve(Transpose::No, x).unwrap()
+}
+
+pub fn merge(a: &Gaussian, b: &Gaussian) -> Gaussian {
+    let prec = &a.prec + &b.prec;
+    let c = a.prec.dot(&a.center) + b.prec.dot(&b.center);
+    let center = solve_prec(&prec, c);
     Gaussian { center, prec }
 }
