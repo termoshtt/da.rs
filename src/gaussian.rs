@@ -10,15 +10,15 @@ pub type Projection = Array<R, Ix2>;
 
 #[derive(Debug, Clone)]
 pub struct Gaussian {
-    pub(crate) center: State,
-    pub(crate) prec: Precision,
+    pub center: State,
+    pub prec: Precision,
 }
 
 #[derive(Debug, Clone)]
 pub struct ProjectedGaussian {
-    pub(crate) center: State,
-    pub(crate) prec: Precision,
-    pub(crate) p: Projection,
+    pub center: State,
+    pub prec: Precision,
+    pub p: Projection,
 }
 
 /// Probability Density Function
