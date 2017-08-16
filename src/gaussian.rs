@@ -39,9 +39,12 @@ fn solve_prec(p: &Precision, x: State) -> State {
     f.solve(Transpose::No, x).unwrap()
 }
 
-pub fn merge(a: &Gaussian, b: &Gaussian) -> Gaussian {
-    let prec = &a.prec + &b.prec;
-    let c = a.prec.dot(&a.center) + b.prec.dot(&b.center);
-    let center = solve_prec(&prec, c);
-    Gaussian { center, prec }
+impl<'a> ::std::ops::Mul<&'a Gaussian> for Gaussian {
+    type Output = Self;
+    fn mul(mut self, rhs: &'a Gaussian) -> Self {
+        let c = self.prec.dot(&self.center) + rhs.prec.dot(&rhs.center);
+        self.prec += &rhs.prec;
+        self.center = solve_prec(&self.prec, c);
+        self
+    }
 }
