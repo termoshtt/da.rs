@@ -1,27 +1,43 @@
-use super::types::*;
 use ndarray::*;
 use ndarray_linalg::*;
 
+use super::types::{R, State};
+
+/// Precision matrix type
+pub type Precision = Array<R, Ix2>;
+/// Matrix for projection
+pub type Projection = Array<R, Ix2>;
+
 #[derive(Debug, Clone)]
 pub struct Gaussian {
-    pub center: Array<R, Ix1>,
-    pub precision: Array<R, Ix2>,
+    pub(crate) center: State,
+    pub(crate) prec: Precision,
 }
 
 #[derive(Debug, Clone)]
 pub struct ProjectedGaussian {
-    pub center: Array<R, Ix1>,
-    pub precision: Array<R, Ix2>,
-    pub p: Array<R, Ix2>,
+    pub(crate) center: State,
+    pub(crate) prec: Precision,
+    pub(crate) p: Projection,
+}
+
+/// Probability Density Function
+pub trait PDF {
+    /// dimension of state
+    fn dim(&self) -> usize;
+    /// relative probability of state (not normalized)
+    fn prob(&State) -> f64;
+    /// log of relative probability of state (not normalized)
+    fn log_prob(&State) -> f64;
 }
 
 pub fn merge(a: &Gaussian, b: &Gaussian) -> Gaussian {
-    let p = &a.precision + &b.precision;
-    let c = a.precision.dot(&a.center) + b.precision.dot(&b.center);
-    let f: Factorized<OwnedRepr<R>> = p.factorize().unwrap();
-    let c = f.solve(Transpose::No, c).unwrap(); // FIXME `solve` uses LU decomposition
-    Gaussian {
-        center: c,
-        precision: p,
-    }
+    let prec = &a.prec + &b.prec;
+    let c = a.prec.dot(&a.center) + b.prec.dot(&b.center);
+    // FIXME `solve` uses LU decomposition
+    // This code should be use Cholesky decomposition,
+    // but corresponding interface is absent in ndarray-linalg
+    let f: Factorized<OwnedRepr<R>> = prec.factorize().unwrap();
+    let center = f.solve(Transpose::No, c).unwrap();
+    Gaussian { center, prec }
 }

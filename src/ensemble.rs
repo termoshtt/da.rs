@@ -46,7 +46,7 @@ impl Ensemble {
         cov *= 1.0 / (m - 1.0);
         Gaussian {
             center: c,
-            precision: cov.inv().unwrap(),
+            prec: cov.inv().unwrap(),
         }
     }
 }
