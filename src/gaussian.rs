@@ -1,37 +1,34 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
-use super::types::{R, State};
+use super::types::R;
 
-/// Precision matrix type
-pub type Precision = Array<R, Ix2>;
-/// Matrix for projection
-pub type Projection = Array<R, Ix2>;
+pub enum Gaussian {
+    M(M),
+    E(E),
+}
 
+impl Gaussian {
+    pub fn from_mean(center: Array1<R>, cov: Array2<R>) -> Self {
+        Gaussian::M(M { center, cov })
+    }
+}
+
+/// natural (m-) parameter as an exponential family
 #[derive(Debug, Clone)]
-pub struct Gaussian {
-    pub center: State,
-    pub prec: Precision,
+pub struct M {
+    center: Array1<R>,
+    cov: Array2<R>,
 }
 
+/// e-parameter as an exponential family
 #[derive(Debug, Clone)]
-pub struct ProjectedGaussian {
-    pub center: State,
-    pub prec: Precision,
-    pub p: Projection,
+pub struct E {
+    ab: Array1<R>,
+    prec: Array2<R>,
 }
 
-/// Probability Density Function
-pub trait PDF {
-    /// dimension of state
-    fn dim(&self) -> usize;
-    /// relative probability of state (not normalized)
-    fn prob(&State) -> f64;
-    /// log of relative probability of state (not normalized)
-    fn log_prob(&State) -> f64;
-}
-
-fn solve_prec(p: &Precision, x: State) -> State {
+fn solve_prec(p: &Array2<R>, x: Array1<R>) -> Array1<R> {
     // FIXME `solve` uses LU decomposition
     // This code should be use Cholesky decomposition,
     // but corresponding interface is absent in ndarray-linalg
@@ -39,12 +36,11 @@ fn solve_prec(p: &Precision, x: State) -> State {
     f.solve(Transpose::No, x).unwrap()
 }
 
-impl<'a> ::std::ops::Mul<&'a Gaussian> for Gaussian {
+impl<'a> ::std::ops::Mul<&'a E> for E {
     type Output = Self;
-    fn mul(mut self, rhs: &'a Gaussian) -> Self {
-        let c = self.prec.dot(&self.center) + rhs.prec.dot(&rhs.center);
+    fn mul(mut self, rhs: &'a E) -> Self {
+        self.ab += &rhs.ab;
         self.prec += &rhs.prec;
-        self.center = solve_prec(&self.prec, c);
         self
     }
 }

@@ -44,10 +44,7 @@ impl Ensemble {
         let mut cov = dx.t().dot(&dx);
         let m = self.size() as f64;
         cov *= 1.0 / (m - 1.0);
-        Gaussian {
-            center: c,
-            prec: cov.inv().unwrap(),
-        }
+        Gaussian::from_mean(c, cov)
     }
 }
 
