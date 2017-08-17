@@ -82,6 +82,19 @@ pub struct M {
     pub cov: Array2<R>,
 }
 
+impl M {
+    pub fn size(&self) -> usize {
+        self.center.len()
+    }
+
+    pub fn ssqrt(&self) -> Array2<R> {
+        let n = self.size() as f64 - 1.0;
+        let ss = (&self.cov * n).ssqrt(UPLO::Upper).unwrap();
+        ss
+        // ss += &self.center;
+    }
+}
+
 /// e-parameter as an exponential family
 #[derive(Debug, Clone)]
 pub struct E {

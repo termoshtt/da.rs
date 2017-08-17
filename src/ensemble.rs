@@ -37,7 +37,6 @@ impl Ensemble {
 
     /// regard ensemble as a Gaussian distribution
     pub fn as_gaussian(&self) -> Gaussian {
-        // XXX this may be slow.
         let c = self.center();
         let dx = &self.0 - &c;
         let mut cov = dx.t().dot(&dx);
@@ -55,6 +54,12 @@ impl Ensemble {
     }
 }
 
+impl From<Array2<R>> for Ensemble {
+    fn from(xs: Array2<R>) -> Ensemble {
+        Ensemble(xs)
+    }
+}
+
 impl ::std::ops::Deref for Ensemble {
     type Target = Array2<R>;
     fn deref(&self) -> &Self::Target {
@@ -62,7 +67,10 @@ impl ::std::ops::Deref for Ensemble {
     }
 }
 
-/// Weight matrix
+/// Ensemble on the weight space (ensemble-transform)
+///
+/// This weight is independent from ensembles due to the ETKF assumption,
+/// i.e. a weight can be used with `t` and `t+1` ensembles.
 #[derive(Debug, Clone)]
 pub struct Weights(Array2<R>);
 
@@ -85,11 +93,22 @@ impl Weights {
     pub fn ens_iter(&self) -> iter::AxisIter<R, Ix1> {
         self.0.axis_iter(Axis(0))
     }
+
+    /// mutable ensemble iterator
+    pub fn ens_iter_mut(&mut self) -> iter::AxisIterMut<R, Ix1> {
+        self.0.axis_iter_mut(Axis(0))
+    }
 }
 
 impl ::std::ops::Deref for Weights {
     type Target = Array2<R>;
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<Array2<R>> for Weights {
+    fn from(xs: Array2<R>) -> Weights {
+        Weights(xs)
     }
 }
