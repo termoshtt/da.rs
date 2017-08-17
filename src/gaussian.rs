@@ -33,15 +33,15 @@ impl Gaussian {
 /// natural (m-) parameter as an exponential family
 #[derive(Debug, Clone)]
 pub struct M {
-    center: Array1<R>,
-    cov: Array2<R>,
+    pub center: Array1<R>,
+    pub cov: Array2<R>,
 }
 
 /// e-parameter as an exponential family
 #[derive(Debug, Clone)]
 pub struct E {
-    ab: Array1<R>,
-    prec: Array2<R>,
+    pub ab: Array1<R>,
+    pub prec: Array2<R>,
 }
 
 impl From<E> for M {
