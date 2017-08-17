@@ -60,11 +60,44 @@ impl From<M> for E {
     }
 }
 
+impl From<Gaussian> for M {
+    fn from(g: Gaussian) -> M {
+        g.into_m()
+    }
+}
+
+impl From<Gaussian> for E {
+    fn from(g: Gaussian) -> E {
+        g.into_e()
+    }
+}
+
+impl Into<Gaussian> for M {
+    fn into(self) -> Gaussian {
+        Gaussian::M(self)
+    }
+}
+
+impl Into<Gaussian> for E {
+    fn into(self) -> Gaussian {
+        Gaussian::E(self)
+    }
+}
+
 impl<'a> ::std::ops::Mul<&'a E> for E {
     type Output = Self;
     fn mul(mut self, rhs: &'a E) -> Self {
         self.ab += &rhs.ab;
         self.prec += &rhs.prec;
         self
+    }
+}
+
+impl<'a, 'b> ::std::ops::Mul<&'a E> for &'b E {
+    type Output = E;
+    fn mul(self, rhs: &'a E) -> E {
+        let ab = &self.ab + &rhs.ab;
+        let prec = &self.prec + &rhs.prec;
+        E { ab, prec }
     }
 }
