@@ -7,7 +7,7 @@ use super::types::*;
 
 /// Ensemble as two-dimensional array
 #[derive(Debug, Clone)]
-pub struct Ensemble(Array<R, Ix2>);
+pub struct Ensemble(Array2<R>);
 
 impl Ensemble {
     /// size of ensemble
@@ -45,15 +45,32 @@ impl Ensemble {
         cov *= 1.0 / (m - 1.0);
         Gaussian::from_mean(c, cov)
     }
-}
 
-impl Ensemble {
     /// Generate ensemble as an isotropic Gaussian distribution
     pub fn isotropic_gaussian<S: Data<Elem = R>>(center: &ArrayBase<S, Ix1>, size: usize, noise: R) -> Ensemble {
         let n = center.len();
         let dist = Normal::new(0.0, noise);
         let dx = Array::random((size, n), dist);
         Ensemble(dx + center)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Weights(Array2<R>);
+
+impl Weights {
+    pub fn trivial(n: usize) -> Self {
+        Weights(Array::eye(n))
+    }
+
+    /// size of ensemble
+    pub fn size(&self) -> usize {
+        self.0.rows()
+    }
+
+    /// immutable ensemble iterator
+    pub fn ens_iter(&self) -> iter::AxisIter<R, Ix1> {
+        self.0.axis_iter(Axis(0))
     }
 }
 
