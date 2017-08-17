@@ -1,5 +1,4 @@
 use ndarray::*;
-use ndarray_linalg::*;
 use ndarray_rand::RandomExt;
 use rand::distributions::*;
 

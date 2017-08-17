@@ -3,6 +3,8 @@ use ndarray_linalg::*;
 
 use super::types::R;
 
+/// Gaussian as an exponential family distribution
+#[derive(Debug, Clone)]
 pub enum Gaussian {
     M(M),
     E(E),
@@ -11,6 +13,20 @@ pub enum Gaussian {
 impl Gaussian {
     pub fn from_mean(center: Array1<R>, cov: Array2<R>) -> Self {
         Gaussian::M(M { center, cov })
+    }
+
+    pub fn into_m(self) -> M {
+        match self {
+            Gaussian::M(m) => m,
+            Gaussian::E(e) => e.into(),
+        }
+    }
+
+    pub fn into_e(self) -> E {
+        match self {
+            Gaussian::M(m) => m.into(),
+            Gaussian::E(e) => e,
+        }
     }
 }
 
@@ -28,12 +44,20 @@ pub struct E {
     prec: Array2<R>,
 }
 
-fn solve_prec(p: &Array2<R>, x: Array1<R>) -> Array1<R> {
-    // FIXME `solve` uses LU decomposition
-    // This code should be use Cholesky decomposition,
-    // but corresponding interface is absent in ndarray-linalg
-    let f: Factorized<OwnedRepr<R>> = p.factorize().unwrap();
-    f.solve(Transpose::No, x).unwrap()
+impl From<E> for M {
+    fn from(e: E) -> Self {
+        let cov = e.prec.inv_into().unwrap();
+        let center = cov.dot(&e.ab);
+        M { center, cov }
+    }
+}
+
+impl From<M> for E {
+    fn from(m: M) -> Self {
+        let prec = m.cov.inv_into().unwrap();
+        let ab = prec.dot(&m.center);
+        E { ab, prec }
+    }
 }
 
 impl<'a> ::std::ops::Mul<&'a E> for E {
