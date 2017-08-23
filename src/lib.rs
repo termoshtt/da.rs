@@ -1,4 +1,7 @@
 
+#[macro_use]
+extern crate procedurals;
+
 extern crate rand;
 extern crate num_complex;
 extern crate ndarray;

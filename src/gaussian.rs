@@ -4,7 +4,16 @@ use ndarray_linalg::*;
 use super::types::R;
 
 /// Gaussian as an exponential family distribution
-#[derive(Debug, Clone)]
+///
+/// Two forms of Gaussian are implemented:
+///
+/// - natural (m-) parameter, i.e. mean and covariance matrix
+/// - e-parameter for calculating the multiplication of two Gaussian
+///
+/// Each forms totally represents Gaussian, and can be converted each other
+/// Conversion cost is in the order of `O(N^2)` since it calculates the inverse matrix.
+/// You will find more knowledge in textbooks of information-geometory.
+#[derive(Debug, Clone, IntoEnum)]
 pub enum Gaussian {
     M(M),
     E(E),
@@ -15,18 +24,54 @@ impl Gaussian {
         Gaussian::M(M { center, cov })
     }
 
-    pub fn into_m(self) -> M {
-        match self {
-            Gaussian::M(m) => m,
-            Gaussian::E(e) => e.into(),
+    /// Get the center of Gaussian
+    ///
+    /// if the Gaussian is in E form, it is recalculated.
+    pub fn center(&self) -> Array1<R> {
+        match *self {
+            Gaussian::M(ref m) => m.center.clone(),
+            Gaussian::E(ref e) => e.prec.solveh(&e.ab).unwrap(),
         }
     }
 
-    pub fn into_e(self) -> E {
-        match self {
-            Gaussian::M(m) => m.into(),
-            Gaussian::E(e) => e,
+    /// Get the covariance matrix of Gaussian
+    ///
+    /// if the Gaussian is in E form, it is recalculated.
+    pub fn cov(&self) -> Array2<R> {
+        match *self {
+            Gaussian::M(ref m) => m.cov.clone(),
+            Gaussian::E(ref e) => e.prec.invh().unwrap(),
         }
+    }
+
+    /// Force to m-parameter
+    pub fn as_m<'a>(&'a mut self) -> &'a mut Self {
+        match *self {
+            Gaussian::M(_) => return self,
+            Gaussian::E(_) => {}
+        }
+        let tmp = E {
+            ab: arr1(&[]),
+            prec: arr2(&[[]]),
+        }.into();
+        let m = ::std::mem::replace(self, tmp).into_m().into();
+        ::std::mem::replace(self, m);
+        self
+    }
+
+    /// Force to e-parameter
+    pub fn as_e<'a>(&'a mut self) -> &'a mut Self {
+        match *self {
+            Gaussian::E(_) => return self,
+            Gaussian::M(_) => {}
+        }
+        let tmp = M {
+            center: arr1(&[]),
+            cov: arr2(&[[]]),
+        }.into();
+        let e = ::std::mem::replace(self, tmp).into_e().into();
+        ::std::mem::replace(self, e);
+        self
     }
 }
 
@@ -44,51 +89,10 @@ pub struct E {
     pub prec: Array2<R>,
 }
 
-impl From<E> for M {
-    fn from(e: E) -> Self {
-        let cov = e.prec.inv_into().unwrap();
-        let center = cov.dot(&e.ab);
-        M { center, cov }
-    }
-}
-
-impl From<M> for E {
-    fn from(m: M) -> Self {
-        let prec = m.cov.inv_into().unwrap();
-        let ab = prec.dot(&m.center);
-        E { ab, prec }
-    }
-}
-
-impl From<Gaussian> for M {
-    fn from(g: Gaussian) -> M {
-        g.into_m()
-    }
-}
-
-impl From<Gaussian> for E {
-    fn from(g: Gaussian) -> E {
-        g.into_e()
-    }
-}
-
-impl Into<Gaussian> for M {
-    fn into(self) -> Gaussian {
-        Gaussian::M(self)
-    }
-}
-
-impl Into<Gaussian> for E {
-    fn into(self) -> Gaussian {
-        Gaussian::E(self)
-    }
-}
-
 impl<'a> ::std::ops::Mul<&'a E> for E {
     type Output = Self;
     fn mul(mut self, rhs: &'a E) -> Self {
-        self.ab += &rhs.ab;
-        self.prec += &rhs.prec;
+        self *= rhs;
         self
     }
 }
@@ -99,5 +103,99 @@ impl<'a, 'b> ::std::ops::Mul<&'a E> for &'b E {
         let ab = &self.ab + &rhs.ab;
         let prec = &self.prec + &rhs.prec;
         E { ab, prec }
+    }
+}
+
+impl<'a> ::std::ops::MulAssign<&'a E> for E {
+    fn mul_assign(&mut self, rhs: &'a E) {
+        self.ab += &rhs.ab;
+        self.prec += &rhs.prec;
+    }
+}
+
+impl<'a> ::std::ops::Mul<&'a Gaussian> for Gaussian {
+    type Output = Self;
+    fn mul(self, rhs: &'a Gaussian) -> Self {
+        let self_e = self.into_e();
+        match *rhs {
+            Gaussian::M(ref m) => (self_e * &m.clone().into_e()).into(),
+            Gaussian::E(ref e) => (self_e * &e).into(),
+        }
+    }
+}
+
+impl<'a, 'b> ::std::ops::Mul<&'a Gaussian> for &'b Gaussian {
+    type Output = Gaussian;
+    fn mul(self, rhs: &'a Gaussian) -> Gaussian {
+        self.clone() * rhs
+    }
+}
+
+impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
+    fn mul_assign(&mut self, rhs: &'a Gaussian) {
+        self.as_e();
+        match *self {
+            Gaussian::M(_) => unreachable!(),
+            Gaussian::E(ref mut e) => {
+                match *rhs {
+                    Gaussian::M(ref m_) => *e *= &m_.clone().into_e(),
+                    Gaussian::E(ref e_) => *e *= e_,
+                };
+            }
+        }
+    }
+}
+
+pub trait IntoM {
+    fn into_m(self) -> M;
+}
+
+impl<T: Into<M>> IntoM for T {
+    fn into_m(self) -> M {
+        self.into()
+    }
+}
+
+pub trait IntoE {
+    fn into_e(self) -> E;
+}
+
+impl<T: Into<E>> IntoE for T {
+    fn into_e(self) -> E {
+        self.into()
+    }
+}
+
+impl From<E> for M {
+    fn from(e: E) -> Self {
+        let cov = e.prec.invh_into().unwrap();
+        let center = cov.dot(&e.ab);
+        M { center, cov }
+    }
+}
+
+impl From<M> for E {
+    fn from(m: M) -> Self {
+        let prec = m.cov.invh_into().unwrap();
+        let ab = prec.dot(&m.center);
+        E { ab, prec }
+    }
+}
+
+impl From<Gaussian> for M {
+    fn from(g: Gaussian) -> M {
+        match g {
+            Gaussian::M(m) => m,
+            Gaussian::E(e) => e.into(),
+        }
+    }
+}
+
+impl From<Gaussian> for E {
+    fn from(g: Gaussian) -> E {
+        match g {
+            Gaussian::M(m) => m.into(),
+            Gaussian::E(e) => e,
+        }
     }
 }

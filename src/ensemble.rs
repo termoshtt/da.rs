@@ -2,7 +2,7 @@ use ndarray::*;
 use ndarray_rand::RandomExt;
 use rand::distributions::*;
 
-use super::gaussian::Gaussian;
+use super::gaussian::*;
 use super::types::*;
 
 /// Ensemble as two-dimensional array
