@@ -15,20 +15,6 @@ impl Gaussian {
         Gaussian::M(M { center, cov })
     }
 
-    pub fn into_m(self) -> M {
-        match self {
-            Gaussian::M(m) => m,
-            Gaussian::E(e) => e.into(),
-        }
-    }
-
-    pub fn into_e(self) -> E {
-        match self {
-            Gaussian::M(m) => m.into(),
-            Gaussian::E(e) => e,
-        }
-    }
-
     pub fn center(&self) -> Array1<R> {
         match *self {
             Gaussian::M(ref m) => m.center.clone(),
@@ -58,6 +44,26 @@ pub struct E {
     pub prec: Array2<R>,
 }
 
+pub trait IntoM {
+    fn into_m(self) -> M;
+}
+
+impl<T: Into<M>> IntoM for T {
+    fn into_m(self) -> M {
+        self.into()
+    }
+}
+
+pub trait IntoE {
+    fn into_e(self) -> E;
+}
+
+impl<T: Into<E>> IntoE for T {
+    fn into_e(self) -> E {
+        self.into()
+    }
+}
+
 impl From<E> for M {
     fn from(e: E) -> Self {
         let cov = e.prec.invh_into().unwrap();
@@ -76,13 +82,19 @@ impl From<M> for E {
 
 impl From<Gaussian> for M {
     fn from(g: Gaussian) -> M {
-        g.into_m()
+        match g {
+            Gaussian::M(m) => m,
+            Gaussian::E(e) => e.into(),
+        }
     }
 }
 
 impl From<Gaussian> for E {
     fn from(g: Gaussian) -> E {
-        g.into_e()
+        match g {
+            Gaussian::M(m) => m.into(),
+            Gaussian::E(e) => e,
+        }
     }
 }
 
