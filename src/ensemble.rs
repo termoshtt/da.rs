@@ -6,7 +6,7 @@ use super::gaussian::*;
 use super::types::*;
 
 /// Ensemble as two-dimensional array
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, NewType)]
 pub struct Ensemble(Array2<R>);
 
 impl Ensemble {
@@ -54,24 +54,11 @@ impl Ensemble {
     }
 }
 
-impl From<Array2<R>> for Ensemble {
-    fn from(xs: Array2<R>) -> Ensemble {
-        Ensemble(xs)
-    }
-}
-
-impl ::std::ops::Deref for Ensemble {
-    type Target = Array2<R>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 /// Ensemble on the weight space (ensemble-transform)
 ///
 /// This weight is independent from ensembles due to the ETKF assumption,
 /// i.e. a weight can be used with `t` and `t+1` ensembles.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, NewType)]
 pub struct Weights(Array2<R>);
 
 impl Weights {
@@ -97,18 +84,5 @@ impl Weights {
     /// mutable ensemble iterator
     pub fn ens_iter_mut(&mut self) -> iter::AxisIterMut<R, Ix1> {
         self.0.axis_iter_mut(Axis(0))
-    }
-}
-
-impl ::std::ops::Deref for Weights {
-    type Target = Array2<R>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<Array2<R>> for Weights {
-    fn from(xs: Array2<R>) -> Weights {
-        Weights(xs)
     }
 }
