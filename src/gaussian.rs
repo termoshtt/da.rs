@@ -43,6 +43,36 @@ impl Gaussian {
             Gaussian::E(ref e) => e.prec.invh().unwrap(),
         }
     }
+
+    /// Force to m-parameter
+    pub fn as_m<'a>(&'a mut self) -> &'a mut Self {
+        match *self {
+            Gaussian::M(_) => return self,
+            Gaussian::E(_) => {}
+        }
+        let tmp = E {
+            ab: arr1(&[]),
+            prec: arr2(&[[]]),
+        }.into();
+        let m = ::std::mem::replace(self, tmp).into_m().into();
+        ::std::mem::replace(self, m);
+        self
+    }
+
+    /// Force to e-parameter
+    pub fn as_e<'a>(&'a mut self) -> &'a mut Self {
+        match *self {
+            Gaussian::E(_) => return self,
+            Gaussian::M(_) => {}
+        }
+        let tmp = M {
+            center: arr1(&[]),
+            cov: arr2(&[[]]),
+        }.into();
+        let e = ::std::mem::replace(self, tmp).into_e().into();
+        ::std::mem::replace(self, e);
+        self
+    }
 }
 
 /// natural (m-) parameter as an exponential family
@@ -80,6 +110,39 @@ impl<'a> ::std::ops::MulAssign<&'a E> for E {
     fn mul_assign(&mut self, rhs: &'a E) {
         self.ab += &rhs.ab;
         self.prec += &rhs.prec;
+    }
+}
+
+impl<'a> ::std::ops::Mul<&'a Gaussian> for Gaussian {
+    type Output = Self;
+    fn mul(self, rhs: &'a Gaussian) -> Self {
+        let self_e = self.into_e();
+        match *rhs {
+            Gaussian::M(ref m) => (self_e * &m.clone().into_e()).into(),
+            Gaussian::E(ref e) => (self_e * &e).into(),
+        }
+    }
+}
+
+impl<'a, 'b> ::std::ops::Mul<&'a Gaussian> for &'b Gaussian {
+    type Output = Gaussian;
+    fn mul(self, rhs: &'a Gaussian) -> Gaussian {
+        self.clone() * rhs
+    }
+}
+
+impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
+    fn mul_assign(&mut self, rhs: &'a Gaussian) {
+        self.as_e();
+        match *self {
+            Gaussian::M(_) => unreachable!(),
+            Gaussian::E(ref mut e) => {
+                match *rhs {
+                    Gaussian::M(ref m_) => *e *= &m_.clone().into_e(),
+                    Gaussian::E(ref e_) => *e *= e_,
+                };
+            }
+        }
     }
 }
 
