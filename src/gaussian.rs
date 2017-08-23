@@ -4,6 +4,15 @@ use ndarray_linalg::*;
 use super::types::R;
 
 /// Gaussian as an exponential family distribution
+///
+/// Two forms of Gaussian are implemented:
+///
+/// - natural (m-) parameter, i.e. mean and covariance matrix
+/// - e-parameter for calculating the multiplication of two Gaussian
+///
+/// Each forms totally represents Gaussian, and can be converted each other
+/// Conversion cost is in the order of `O(N^2)` since it calculates the inverse matrix.
+/// You will find more knowledge in textbooks of information-geometory.
 #[derive(Debug, Clone, IntoEnum)]
 pub enum Gaussian {
     M(M),
@@ -15,6 +24,9 @@ impl Gaussian {
         Gaussian::M(M { center, cov })
     }
 
+    /// Get the center of Gaussian
+    ///
+    /// if the Gaussian is in E form, it is recalculated.
     pub fn center(&self) -> Array1<R> {
         match *self {
             Gaussian::M(ref m) => m.center.clone(),
@@ -22,6 +34,9 @@ impl Gaussian {
         }
     }
 
+    /// Get the covariance matrix of Gaussian
+    ///
+    /// if the Gaussian is in E form, it is recalculated.
     pub fn cov(&self) -> Array2<R> {
         match *self {
             Gaussian::M(ref m) => m.cov.clone(),
