@@ -4,7 +4,7 @@ use ndarray_linalg::*;
 use super::types::R;
 
 /// Gaussian as an exponential family distribution
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, IntoEnum)]
 pub enum Gaussian {
     M(M),
     E(E),
@@ -69,18 +69,6 @@ impl From<Gaussian> for M {
 impl From<Gaussian> for E {
     fn from(g: Gaussian) -> E {
         g.into_e()
-    }
-}
-
-impl Into<Gaussian> for M {
-    fn into(self) -> Gaussian {
-        Gaussian::M(self)
-    }
-}
-
-impl Into<Gaussian> for E {
-    fn into(self) -> Gaussian {
-        Gaussian::E(self)
     }
 }
 

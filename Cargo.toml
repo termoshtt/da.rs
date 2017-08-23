@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 [dependencies]
+procedurals = "0.2.1"
 rand = "0.3"
 num-complex = "0.1"
 ndarray = "0.10"
