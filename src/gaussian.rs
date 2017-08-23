@@ -46,7 +46,7 @@ pub struct E {
 
 impl From<E> for M {
     fn from(e: E) -> Self {
-        let cov = e.prec.inv_into().unwrap();
+        let cov = e.prec.invh_into().unwrap();
         let center = cov.dot(&e.ab);
         M { center, cov }
     }
@@ -54,7 +54,7 @@ impl From<E> for M {
 
 impl From<M> for E {
     fn from(m: M) -> Self {
-        let prec = m.cov.inv_into().unwrap();
+        let prec = m.cov.invh_into().unwrap();
         let ab = prec.dot(&m.center);
         E { ab, prec }
     }
