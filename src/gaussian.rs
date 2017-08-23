@@ -28,6 +28,20 @@ impl Gaussian {
             Gaussian::E(e) => e,
         }
     }
+
+    pub fn center(&self) -> Array1<R> {
+        match *self {
+            Gaussian::M(ref m) => m.center.clone(),
+            Gaussian::E(ref e) => e.prec.solveh(&e.ab).unwrap(),
+        }
+    }
+
+    pub fn cov(&self) -> Array2<R> {
+        match *self {
+            Gaussian::M(ref m) => m.cov.clone(),
+            Gaussian::E(ref e) => e.prec.invh().unwrap(),
+        }
+    }
 }
 
 /// natural (m-) parameter as an exponential family
