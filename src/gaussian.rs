@@ -59,6 +59,30 @@ pub struct E {
     pub prec: Array2<R>,
 }
 
+impl<'a> ::std::ops::Mul<&'a E> for E {
+    type Output = Self;
+    fn mul(mut self, rhs: &'a E) -> Self {
+        self *= rhs;
+        self
+    }
+}
+
+impl<'a, 'b> ::std::ops::Mul<&'a E> for &'b E {
+    type Output = E;
+    fn mul(self, rhs: &'a E) -> E {
+        let ab = &self.ab + &rhs.ab;
+        let prec = &self.prec + &rhs.prec;
+        E { ab, prec }
+    }
+}
+
+impl<'a> ::std::ops::MulAssign<&'a E> for E {
+    fn mul_assign(&mut self, rhs: &'a E) {
+        self.ab += &rhs.ab;
+        self.prec += &rhs.prec;
+    }
+}
+
 pub trait IntoM {
     fn into_m(self) -> M;
 }
@@ -110,23 +134,5 @@ impl From<Gaussian> for E {
             Gaussian::M(m) => m.into(),
             Gaussian::E(e) => e,
         }
-    }
-}
-
-impl<'a> ::std::ops::Mul<&'a E> for E {
-    type Output = Self;
-    fn mul(mut self, rhs: &'a E) -> Self {
-        self.ab += &rhs.ab;
-        self.prec += &rhs.prec;
-        self
-    }
-}
-
-impl<'a, 'b> ::std::ops::Mul<&'a E> for &'b E {
-    type Output = E;
-    fn mul(self, rhs: &'a E) -> E {
-        let ab = &self.ab + &rhs.ab;
-        let prec = &self.prec + &rhs.prec;
-        E { ab, prec }
     }
 }
