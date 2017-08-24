@@ -17,7 +17,7 @@ fn size() {
     assert_eq!(xs.dim(), n);
     assert_eq!(xs.size(), m);
 
-    let g = xs.as_gaussian().into_m();
+    let g: da::gaussian::M = xs.as_gaussian().into();
     assert_eq!(g.center.shape(), [n]);
     assert_eq!(g.cov.shape(), [n, n]);
 }

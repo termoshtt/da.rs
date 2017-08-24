@@ -5,7 +5,6 @@ extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
 
-use da::ensemble::*;
 use da::gaussian::*;
 use ndarray_linalg::*;
 
@@ -31,20 +30,4 @@ fn merge_gaussian() {
     println!("g3(M) = {:?}", &g3);
     assert_close_l2!(&g3.center(), &array![1.0, 0.0], 1e-7);
     assert_close_l2!(&g3.cov(), &array![[0.5, 0.0], [0.0, 0.5]], 1e-7);
-}
-
-#[test]
-fn ssqrt() {
-    let c = random(3);
-    let cov = random_hpd(3);
-    let m = Gaussian::from_mean(c, cov).into_m();
-    println!("m.center = {:?}", &m.center);
-    println!("m.cov = \n{:?}", &m.cov);
-    let xs: Ensemble = m.ssqrt().into();
-    println!("xs = {:?}", &xs);
-    let m2 = xs.as_gaussian().into_m();
-    println!("m2.center = {:?}", &m2.center);
-    println!("m2.cov = \n{:?}", &m2.cov);
-    assert_close_l2!(&m2.center, &m.center, 1e-7);
-    assert_close_l2!(&m2.cov, &m.cov, 1e-7);
 }
