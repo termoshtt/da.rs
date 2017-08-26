@@ -1,10 +1,10 @@
 
-extern crate da;
+extern crate dars;
 extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
 
-use da::ensemble::*;
+use dars::ensemble::*;
 use ndarray::*;
 use ndarray_linalg::*;
 
@@ -17,7 +17,7 @@ fn size() {
     assert_eq!(xs.dim(), n);
     assert_eq!(xs.size(), m);
 
-    let g: da::gaussian::M = xs.as_gaussian().into();
+    let g: dars::gaussian::M = xs.as_gaussian().into();
     assert_eq!(g.center.shape(), [n]);
     assert_eq!(g.cov.shape(), [n, n]);
 }

@@ -1,11 +1,11 @@
 
-extern crate da;
+extern crate dars;
 #[macro_use]
 extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
 
-use da::gaussian::*;
+use dars::gaussian::*;
 use ndarray_linalg::*;
 
 #[test]
