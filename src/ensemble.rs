@@ -31,18 +31,24 @@ impl Ensemble {
     }
 
     /// center of ensemble
-    pub fn center(&self) -> Array<R, Ix1> {
+    pub fn center(&self) -> Array1<R> {
         self.0.mean(Axis(0))
     }
 
-    /// regard ensemble as a Gaussian distribution
-    pub fn as_gaussian(&self) -> Gaussian {
+    /// Calculate center and covariance matrix
+    pub fn stat(&self) -> (Array1<R>, Array2<R>) {
         let c = self.center();
         let dx = &self.0 - &c;
         let mut cov = dx.t().dot(&dx);
         let m = self.size() as f64;
         cov *= 1.0 / (m - 1.0);
-        Gaussian::from_mean(c, cov)
+        (c, cov)
+    }
+
+    /// regard ensemble as a Gaussian distribution
+    pub fn as_gaussian(&self) -> Gaussian {
+        let (center, cov) = self.stat();
+        Gaussian::from_mean(center, cov)
     }
 
     /// Generate ensemble as an isotropic Gaussian distribution
@@ -51,6 +57,21 @@ impl Ensemble {
         let dist = Normal::new(0.0, noise);
         let dx = Array::random((size, n), dist);
         Ensemble(dx + center)
+    }
+}
+
+pub fn ensemble_transform(ens: &Ensemble, pg: PGaussian) -> PGaussian {
+    let xm = ens.center();
+    let hxm = pg.projection.dot(&xm);
+    let projection = pg.projection.dot(&ens.0) - &hxm;
+    let m: M = pg.gaussian.into();
+    let gaussian = M {
+        center: m.center - hxm,
+        cov: m.cov,
+    }.into();
+    PGaussian {
+        projection,
+        gaussian,
     }
 }
 

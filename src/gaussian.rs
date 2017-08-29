@@ -24,13 +24,20 @@ impl Gaussian {
         Gaussian::M(M { center, cov })
     }
 
+    pub fn size(&self) -> usize {
+        match *self {
+            Gaussian::M(ref m) => m.size(),
+            Gaussian::E(ref e) => e.size(),
+        }
+    }
+
     /// Get the center of Gaussian
     ///
     /// if the Gaussian is in E form, it is recalculated.
     pub fn center(&self) -> Array1<R> {
         match *self {
             Gaussian::M(ref m) => m.center.clone(),
-            Gaussian::E(ref e) => e.prec.solveh(&e.ab).unwrap(),
+            Gaussian::E(ref e) => e.prec.solveh(&e.ab).expect("Precision matrix is singular"),
         }
     }
 
@@ -40,7 +47,7 @@ impl Gaussian {
     pub fn cov(&self) -> Array2<R> {
         match *self {
             Gaussian::M(ref m) => m.cov.clone(),
-            Gaussian::E(ref e) => e.prec.invh().unwrap(),
+            Gaussian::E(ref e) => e.prec.invh().expect("Precision matrix is singular"),
         }
     }
 
@@ -54,8 +61,8 @@ impl Gaussian {
             ab: arr1(&[]),
             prec: arr2(&[[]]),
         }.into();
-        let m = ::std::mem::replace(self, tmp).into_m().into();
-        ::std::mem::replace(self, m);
+        let m: M = ::std::mem::replace(self, tmp).into();
+        ::std::mem::replace(self, m.into());
         self
     }
 
@@ -69,9 +76,32 @@ impl Gaussian {
             center: arr1(&[]),
             cov: arr2(&[[]]),
         }.into();
-        let e = ::std::mem::replace(self, tmp).into_e().into();
-        ::std::mem::replace(self, e);
+        let e: E = ::std::mem::replace(self, tmp).into();
+        ::std::mem::replace(self, e.into());
         self
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PGaussian {
+    pub projection: Array2<R>,
+    pub gaussian: Gaussian,
+}
+
+impl PGaussian {
+    pub fn size(&self) -> usize {
+        self.projection.cols()
+    }
+
+    pub fn reduction(self) -> Gaussian {
+        assert!(
+            self.size() <= self.gaussian.size(),
+            "Upward reduction is prohibited"
+        );
+        let e: E = self.gaussian.into();
+        let ab = self.projection.t().dot(&e.ab);
+        let prec = self.projection.t().dot(&e.prec).dot(&self.projection);
+        E { ab, prec }.into()
     }
 }
 
@@ -82,11 +112,23 @@ pub struct M {
     pub cov: Array2<R>,
 }
 
+impl M {
+    pub fn size(&self) -> usize {
+        self.center.len()
+    }
+}
+
 /// e-parameter as an exponential family
 #[derive(Debug, Clone)]
 pub struct E {
     pub ab: Array1<R>,
     pub prec: Array2<R>,
+}
+
+impl E {
+    pub fn size(&self) -> usize {
+        self.ab.len()
+    }
 }
 
 impl<'a> ::std::ops::Mul<&'a E> for E {
@@ -116,9 +158,9 @@ impl<'a> ::std::ops::MulAssign<&'a E> for E {
 impl<'a> ::std::ops::Mul<&'a Gaussian> for Gaussian {
     type Output = Self;
     fn mul(self, rhs: &'a Gaussian) -> Self {
-        let self_e = self.into_e();
+        let self_e: E = self.into();
         match *rhs {
-            Gaussian::M(ref m) => (self_e * &m.clone().into_e()).into(),
+            Gaussian::M(ref m) => (self_e * &m.clone().into()).into(),
             Gaussian::E(ref e) => (self_e * &e).into(),
         }
     }
@@ -138,7 +180,7 @@ impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
             Gaussian::M(_) => unreachable!(),
             Gaussian::E(ref mut e) => {
                 match *rhs {
-                    Gaussian::M(ref m_) => *e *= &m_.clone().into_e(),
+                    Gaussian::M(ref m_) => *e *= &m_.clone().into(),
                     Gaussian::E(ref e_) => *e *= e_,
                 };
             }
@@ -146,29 +188,9 @@ impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
     }
 }
 
-pub trait IntoM {
-    fn into_m(self) -> M;
-}
-
-impl<T: Into<M>> IntoM for T {
-    fn into_m(self) -> M {
-        self.into()
-    }
-}
-
-pub trait IntoE {
-    fn into_e(self) -> E;
-}
-
-impl<T: Into<E>> IntoE for T {
-    fn into_e(self) -> E {
-        self.into()
-    }
-}
-
 impl From<E> for M {
     fn from(e: E) -> Self {
-        let cov = e.prec.invh_into().unwrap();
+        let cov = e.prec.invh_into().expect("Precision matrix is singular");
         let center = cov.dot(&e.ab);
         M { center, cov }
     }
@@ -176,7 +198,7 @@ impl From<E> for M {
 
 impl From<M> for E {
     fn from(m: M) -> Self {
-        let prec = m.cov.invh_into().unwrap();
+        let prec = m.cov.invh_into().expect("Covariance matrix is singular");
         let ab = prec.dot(&m.center);
         E { ab, prec }
     }
