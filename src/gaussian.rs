@@ -26,8 +26,8 @@ impl Gaussian {
 
     pub fn size(&self) -> usize {
         match *self {
-            Gaussian::M(ref m) => m.center.len(),
-            Gaussian::E(ref e) => e.ab.len(),
+            Gaussian::M(ref m) => m.size(),
+            Gaussian::E(ref e) => e.size(),
         }
     }
 
@@ -112,11 +112,23 @@ pub struct M {
     pub cov: Array2<R>,
 }
 
+impl M {
+    pub fn size(&self) -> usize {
+        self.center.len()
+    }
+}
+
 /// e-parameter as an exponential family
 #[derive(Debug, Clone)]
 pub struct E {
     pub ab: Array1<R>,
     pub prec: Array2<R>,
+}
+
+impl E {
+    pub fn size(&self) -> usize {
+        self.ab.len()
+    }
 }
 
 impl<'a> ::std::ops::Mul<&'a E> for E {

@@ -71,10 +71,19 @@ mod pgaussian {
         }
     }
 
+    fn pg_2to3() -> PGaussian {
+        let h = array![[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
+        let g = Gaussian::from_mean(random(3), random_hpd(3));
+        PGaussian {
+            projection: h,
+            gaussian: g,
+        }
+    }
+
     #[test]
     fn size() {
-        let pg = pg_3to2();
-        assert_eq!(pg.size(), 3);
+        assert_eq!(pg_3to2().size(), 3);
+        assert_eq!(pg_2to3().size(), 2);
     }
 
     #[should_panic]
@@ -83,4 +92,10 @@ mod pgaussian {
         pg_3to2().reduction();
     }
 
+    #[test]
+    fn reduction() {
+        let pg = pg_2to3();
+        let m: M = pg.reduction().into(); // should not panic
+        assert_eq!(m.size(), 2);
+    }
 }
