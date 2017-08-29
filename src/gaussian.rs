@@ -54,8 +54,8 @@ impl Gaussian {
             ab: arr1(&[]),
             prec: arr2(&[[]]),
         }.into();
-        let m = ::std::mem::replace(self, tmp).into_m().into();
-        ::std::mem::replace(self, m);
+        let m: M = ::std::mem::replace(self, tmp).into();
+        ::std::mem::replace(self, m.into());
         self
     }
 
@@ -69,8 +69,8 @@ impl Gaussian {
             center: arr1(&[]),
             cov: arr2(&[[]]),
         }.into();
-        let e = ::std::mem::replace(self, tmp).into_e().into();
-        ::std::mem::replace(self, e);
+        let e: E = ::std::mem::replace(self, tmp).into();
+        ::std::mem::replace(self, e.into());
         self
     }
 }
@@ -116,9 +116,9 @@ impl<'a> ::std::ops::MulAssign<&'a E> for E {
 impl<'a> ::std::ops::Mul<&'a Gaussian> for Gaussian {
     type Output = Self;
     fn mul(self, rhs: &'a Gaussian) -> Self {
-        let self_e = self.into_e();
+        let self_e: E = self.into();
         match *rhs {
-            Gaussian::M(ref m) => (self_e * &m.clone().into_e()).into(),
+            Gaussian::M(ref m) => (self_e * &m.clone().into()).into(),
             Gaussian::E(ref e) => (self_e * &e).into(),
         }
     }
@@ -138,31 +138,11 @@ impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
             Gaussian::M(_) => unreachable!(),
             Gaussian::E(ref mut e) => {
                 match *rhs {
-                    Gaussian::M(ref m_) => *e *= &m_.clone().into_e(),
+                    Gaussian::M(ref m_) => *e *= &m_.clone().into(),
                     Gaussian::E(ref e_) => *e *= e_,
                 };
             }
         }
-    }
-}
-
-pub trait IntoM {
-    fn into_m(self) -> M;
-}
-
-impl<T: Into<M>> IntoM for T {
-    fn into_m(self) -> M {
-        self.into()
-    }
-}
-
-pub trait IntoE {
-    fn into_e(self) -> E;
-}
-
-impl<T: Into<E>> IntoE for T {
-    fn into_e(self) -> E {
-        self.into()
     }
 }
 
