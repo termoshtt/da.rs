@@ -75,6 +75,25 @@ impl Gaussian {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct PGaussian {
+    pub projection: Array2<R>,
+    pub gaussian: Gaussian,
+}
+
+impl PGaussian {
+    pub fn size(&self) -> usize {
+        self.projection.cols()
+    }
+
+    pub fn reduction(self) -> Gaussian {
+        let e: E = self.gaussian.into();
+        let ab = self.projection.t().dot(&e.ab);
+        let prec = self.projection.t().dot(&e.prec).dot(&self.projection);
+        E { ab, prec }.into()
+    }
+}
+
 /// natural (m-) parameter as an exponential family
 #[derive(Debug, Clone)]
 pub struct M {
