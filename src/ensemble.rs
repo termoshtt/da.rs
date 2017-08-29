@@ -58,6 +58,21 @@ impl Ensemble {
         let dx = Array::random((size, n), dist);
         Ensemble(dx + center)
     }
+
+    pub fn ensemble_transform(&self, pg: PGaussian) -> PGaussian {
+        let xm = self.center();
+        let hxm = pg.projection.dot(&xm);
+        let projection = pg.projection.dot(&self.0) - &hxm;
+        let m: M = pg.gaussian.into();
+        let gaussian = M {
+            center: m.center - hxm,
+            cov: m.cov,
+        }.into();
+        PGaussian {
+            projection,
+            gaussian,
+        }
+    }
 }
 
 /// Ensemble on the weight space (ensemble-transform)
