@@ -24,13 +24,20 @@ impl Gaussian {
         Gaussian::M(M { center, cov })
     }
 
+    pub fn size(&self) -> usize {
+        match *self {
+            Gaussian::M(ref m) => m.center.len(),
+            Gaussian::E(ref e) => e.ab.len(),
+        }
+    }
+
     /// Get the center of Gaussian
     ///
     /// if the Gaussian is in E form, it is recalculated.
     pub fn center(&self) -> Array1<R> {
         match *self {
             Gaussian::M(ref m) => m.center.clone(),
-            Gaussian::E(ref e) => e.prec.solveh(&e.ab).unwrap(),
+            Gaussian::E(ref e) => e.prec.solveh(&e.ab).expect("Precision matrix is singular"),
         }
     }
 
@@ -40,7 +47,7 @@ impl Gaussian {
     pub fn cov(&self) -> Array2<R> {
         match *self {
             Gaussian::M(ref m) => m.cov.clone(),
-            Gaussian::E(ref e) => e.prec.invh().unwrap(),
+            Gaussian::E(ref e) => e.prec.invh().expect("Precision matrix is singular"),
         }
     }
 
@@ -87,6 +94,10 @@ impl PGaussian {
     }
 
     pub fn reduction(self) -> Gaussian {
+        assert!(
+            self.size() <= self.gaussian.size(),
+            "Upward reduction is prohibited"
+        );
         let e: E = self.gaussian.into();
         let ab = self.projection.t().dot(&e.ab);
         let prec = self.projection.t().dot(&e.prec).dot(&self.projection);
@@ -167,7 +178,7 @@ impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
 
 impl From<E> for M {
     fn from(e: E) -> Self {
-        let cov = e.prec.invh_into().unwrap();
+        let cov = e.prec.invh_into().expect("Precision matrix is singular");
         let center = cov.dot(&e.ab);
         M { center, cov }
     }
@@ -175,7 +186,7 @@ impl From<E> for M {
 
 impl From<M> for E {
     fn from(m: M) -> Self {
-        let prec = m.cov.invh_into().unwrap();
+        let prec = m.cov.invh_into().expect("Covariance matrix is singular");
         let ab = prec.dot(&m.center);
         E { ab, prec }
     }
