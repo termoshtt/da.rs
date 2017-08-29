@@ -89,7 +89,7 @@ mod pgaussian {
     #[should_panic]
     #[test]
     fn upward_reduction() {
-        pg_3to2().reduction();
+        let _m: M = pg_3to2().reduction().into();
     }
 
     #[test]

@@ -1,4 +1,5 @@
 use ndarray::*;
+use ndarray_linalg::*;
 use ndarray_rand::RandomExt;
 use rand::distributions::*;
 
@@ -63,15 +64,15 @@ impl Ensemble {
 pub fn ensemble_transform(ens: &Ensemble, pg: PGaussian) -> PGaussian {
     let xm = ens.center();
     let hxm = pg.projection.dot(&xm);
-    let projection = pg.projection.dot(&ens.0) - &hxm;
+    let p = ens.dot(&pg.projection.t()) - &hxm;
     let m: M = pg.gaussian.into();
-    let gaussian = M {
+    let g = M {
         center: m.center - hxm,
         cov: m.cov,
     }.into();
     PGaussian {
-        projection,
-        gaussian,
+        projection: p.reversed_axes(),
+        gaussian: g,
     }
 }
 

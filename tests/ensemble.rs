@@ -5,6 +5,8 @@ extern crate ndarray;
 extern crate ndarray_linalg;
 
 use dars::ensemble::*;
+use dars::gaussian::*;
+use dars::types::*;
 use ndarray::*;
 use ndarray_linalg::*;
 
@@ -45,4 +47,19 @@ fn transform() {
     let w = Weights::trivial(m);
     let xs_new = w.transform(&xs);
     assert_close_l2!(&xs_new, &xs, 1e-7);
+}
+
+#[test]
+fn ensemble_transform_() {
+    let k = 6;
+    let c: Array1<R> = random(3);
+    let h: Array2<R> = random((2, 3));
+    let g = Gaussian::from_mean(random(2), Array::eye(2));
+    let ens = Ensemble::isotropic_gaussian(&c, k, 0.1);
+    let pg = PGaussian::new(h, g);
+    assert_eq!(pg.size(), 3);
+    let pg_t = ensemble_transform(&ens, pg);
+    assert_eq!(pg_t.size(), 6);
+    let g = pg_t.reduction();
+    assert_eq!(g.size(), 6);
 }

@@ -89,15 +89,19 @@ pub struct PGaussian {
 }
 
 impl PGaussian {
+    pub fn new(projection: Array2<R>, gaussian: Gaussian) -> Self {
+        assert_eq!(projection.rows(), gaussian.size());
+        PGaussian {
+            projection,
+            gaussian,
+        }
+    }
+
     pub fn size(&self) -> usize {
         self.projection.cols()
     }
 
     pub fn reduction(self) -> Gaussian {
-        assert!(
-            self.size() <= self.gaussian.size(),
-            "Upward reduction is prohibited"
-        );
         let e: E = self.gaussian.into();
         let ab = self.projection.t().dot(&e.ab);
         let prec = self.projection.t().dot(&e.prec).dot(&self.projection);
