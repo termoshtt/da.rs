@@ -108,3 +108,12 @@ impl Weights {
         self.0.axis_iter_mut(Axis(0))
     }
 }
+
+/// Core function for square-root filter
+///
+/// Sampling weights from Gaussian in weight space.
+/// Gaussian must have an eigenvector `(1, ..., 1)`.
+pub fn ssqrt_sampling(m: &M) -> Weights {
+    let ws = m.cov.ssqrt(UPLO::Upper).unwrap();
+    Weights(ws + &m.center)
+}
