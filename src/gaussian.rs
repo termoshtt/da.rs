@@ -146,7 +146,7 @@ impl<'a> ::std::ops::Mul<&'a Gaussian> for Gaussian {
     fn mul(self, rhs: &'a Gaussian) -> Self {
         let self_e: E = self.into();
         match *rhs {
-            Gaussian::M(ref m) => (self_e * &m.clone().into()).into(),
+            Gaussian::M(ref m) => (self_e * &m.as_e()).into(),
             Gaussian::E(ref e) => (self_e * &e).into(),
         }
     }
@@ -167,7 +167,7 @@ impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
         });
         let mut e: E = ::std::mem::replace(self, dummy).into();
         match *rhs {
-            Gaussian::M(ref m_) => e *= &m_.clone().into(),
+            Gaussian::M(ref m_) => e *= &m_.as_e(),
             Gaussian::E(ref e_) => e *= e_,
         };
         ::std::mem::replace(self, e.into());
