@@ -50,36 +50,6 @@ impl Gaussian {
             Gaussian::E(ref e) => e.prec.invh().expect("Precision matrix is singular"),
         }
     }
-
-    /// Force to m-parameter
-    pub fn as_m<'a>(&'a mut self) -> &'a mut Self {
-        match *self {
-            Gaussian::M(_) => return self,
-            Gaussian::E(_) => {}
-        }
-        let tmp = E {
-            ab: arr1(&[]),
-            prec: arr2(&[[]]),
-        }.into();
-        let m: M = ::std::mem::replace(self, tmp).into();
-        ::std::mem::replace(self, m.into());
-        self
-    }
-
-    /// Force to e-parameter
-    pub fn as_e<'a>(&'a mut self) -> &'a mut Self {
-        match *self {
-            Gaussian::E(_) => return self,
-            Gaussian::M(_) => {}
-        }
-        let tmp = M {
-            center: arr1(&[]),
-            cov: arr2(&[[]]),
-        }.into();
-        let e: E = ::std::mem::replace(self, tmp).into();
-        ::std::mem::replace(self, e.into());
-        self
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -179,16 +149,16 @@ impl<'a, 'b> ::std::ops::Mul<&'a Gaussian> for &'b Gaussian {
 
 impl<'a> ::std::ops::MulAssign<&'a Gaussian> for Gaussian {
     fn mul_assign(&mut self, rhs: &'a Gaussian) {
-        self.as_e();
-        match *self {
-            Gaussian::M(_) => unreachable!(),
-            Gaussian::E(ref mut e) => {
-                match *rhs {
-                    Gaussian::M(ref m_) => *e *= &m_.clone().into(),
-                    Gaussian::E(ref e_) => *e *= e_,
-                };
-            }
-        }
+        let dummy = Gaussian::E(E {
+            ab: array![0.0],
+            prec: array![[0.0]],
+        });
+        let mut e: E = ::std::mem::replace(self, dummy).into();
+        match *rhs {
+            Gaussian::M(ref m_) => e *= &m_.clone().into(),
+            Gaussian::E(ref e_) => e *= e_,
+        };
+        ::std::mem::replace(self, e.into());
     }
 }
 
