@@ -38,12 +38,7 @@ impl Ensemble {
 
     /// Calculate center and covariance matrix
     pub fn stat(&self) -> (Array1<R>, Array2<R>) {
-        let c = self.center();
-        let dx = &self.0 - &c;
-        let mut cov = dx.t().dot(&dx);
-        let m = self.size() as f64;
-        cov *= 1.0 / (m - 1.0);
-        (c, cov)
+        stat(self)
     }
 
     /// regard ensemble as a Gaussian distribution
@@ -58,21 +53,6 @@ impl Ensemble {
         let dist = Normal::new(0.0, noise);
         let dx = Array::random((size, n), dist);
         Ensemble(dx + center)
-    }
-}
-
-pub fn ensemble_transform(ens: &Ensemble, pg: PGaussian) -> PGaussian {
-    let xm = ens.center();
-    let hxm = pg.projection.dot(&xm);
-    let p = ens.dot(&pg.projection.t()) - &hxm;
-    let m: M = pg.gaussian.into();
-    let g = M {
-        center: m.center - hxm,
-        cov: m.cov,
-    }.into();
-    PGaussian {
-        projection: p.reversed_axes(),
-        gaussian: g,
     }
 }
 
@@ -102,6 +82,11 @@ impl Weights {
         self.0.mean(Axis(0))
     }
 
+    /// Calculate center and covariance matrix
+    pub fn stat(&self) -> (Array1<R>, Array2<R>) {
+        stat(self)
+    }
+
     /// immutable ensemble iterator
     pub fn ens_iter(&self) -> iter::AxisIter<R, Ix1> {
         self.0.axis_iter(Axis(0))
@@ -113,11 +98,39 @@ impl Weights {
     }
 }
 
+/// Transform projected Gaussian on the real space to ensemble space
+pub fn ensemble_transform(ens: &Ensemble, pg: PGaussian) -> PGaussian {
+    let xm = ens.center();
+    let hxm = pg.projection.dot(&xm);
+    let p = ens.dot(&pg.projection.t()) - &hxm;
+    let m: M = pg.gaussian.into();
+    let g = M {
+        center: m.center - hxm,
+        cov: m.cov,
+    }.into();
+    PGaussian {
+        projection: p.reversed_axes(),
+        gaussian: g,
+    }
+}
+
 /// Core function for square-root filter
 ///
 /// Sampling weights from Gaussian in weight space.
 /// Gaussian must have an eigenvector `(1, ..., 1)`.
 pub fn ssqrt_sampling(m: &M) -> Weights {
-    let ws = m.cov.ssqrt(UPLO::Upper).unwrap();
+    let km1 = m.size() as f64 - 1.0;
+    let ws = (km1 * &m.cov).ssqrt_into(UPLO::Upper).unwrap();
     Weights(ws + &m.center)
+}
+
+
+/// Calculate center and covariance matrix (assuming 0-index denotes ensemble)
+fn stat(a: &Array2<R>) -> (Array1<R>, Array2<R>) {
+    let c = a.mean(Axis(0));
+    let dx = a - &c;
+    let mut cov = dx.t().dot(&dx);
+    let m = a.rows() as f64;
+    cov *= 1.0 / (m - 1.0);
+    (c, cov)
 }

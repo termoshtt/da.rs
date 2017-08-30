@@ -66,16 +66,30 @@ fn ensemble_transform_() {
 
 #[test]
 fn ssqrt_sampling_() {
-    let u = array![[1.0, -1.0, 0.0], [1.0, 1.0, -2.0], [1.0, 1.0, 1.0]];
-    let a = u.t().dot(&u) / 3.0;
     let v = array![1.0, 1.0, 1.0];
+    let v1 = array![1.0, -1.0, 0.0];
+    let v2 = array![1.0, 1.0, -2.0];
+    let u = array![[1.0, -1.0, 0.0], [1.0, 1.0, -2.0], [1.0, 1.0, 1.0]];
+
+    let a = u.t().dot(&u) / 3.0;
+    println!("a = {:?}", &a);
     println!("av = {:?}", a.dot(&v));
+    assert_close_l2!(&a.dot(&v), &v, 1e-7; "v is 1-eigenvector of a");
+
     let c = random(3);
-    println!("c = {:?}", &c);
-    let m: M = Gaussian::from_mean(c.clone(), a).into();
+    let m: M = Gaussian::from_mean(c.clone(), a.clone()).into();
+    println!("Gaussian = \n{:?}", &m);
+
     let w = ssqrt_sampling(&m);
     println!("w = {:?}", &w);
+    // check center
     let d = w.center() - &c;
     println!("w.center - c = {:?}", d);
-    assert_close_l2!(&d, &(d[0] * v), 1e-7);
+    assert_close_l2!(&d, &(d[0] * &v), 1e-7);
+    // check covariance matrix
+    let wc = w.stat().1;
+    println!("w.cov = \n{:?}", &wc);
+    assert_close_max!(&wc.dot(&v), &Array::zeros(3), 1e-7; "v direction is dropped");
+    assert_close_l2!(&wc.dot(&v1), &a.dot(&v1), 1e-7; "check v1 direction");
+    assert_close_l2!(&wc.dot(&v2), &a.dot(&v2), 1e-7; "check v2 direction");
 }
