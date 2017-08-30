@@ -98,6 +98,10 @@ impl Weights {
         self.0.rows()
     }
 
+    pub fn center(&self) -> Array1<R> {
+        self.0.mean(Axis(0))
+    }
+
     /// immutable ensemble iterator
     pub fn ens_iter(&self) -> iter::AxisIter<R, Ix1> {
         self.0.axis_iter(Axis(0))

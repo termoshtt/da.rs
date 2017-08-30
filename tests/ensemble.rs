@@ -63,3 +63,19 @@ fn ensemble_transform_() {
     let g = pg_t.reduction();
     assert_eq!(g.size(), 6);
 }
+
+#[test]
+fn ssqrt_sampling_() {
+    let u = array![[1.0, -1.0, 0.0], [1.0, 1.0, -2.0], [1.0, 1.0, 1.0]];
+    let a = u.t().dot(&u) / 3.0;
+    let v = array![1.0, 1.0, 1.0];
+    println!("av = {:?}", a.dot(&v));
+    let c = random(3);
+    println!("c = {:?}", &c);
+    let m: M = Gaussian::from_mean(c.clone(), a).into();
+    let w = ssqrt_sampling(&m);
+    println!("w = {:?}", &w);
+    let d = w.center() - &c;
+    println!("w.center - c = {:?}", d);
+    assert_close_l2!(&d, &(d[0] * v), 1e-7);
+}
