@@ -3,6 +3,14 @@ name = "dars"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
+description   = "Data Assimilation in Rust"
+documentation = "https://docs.rs/da.rs"
+repository    = "https://github.com/termoshtt/da.rs"
+keywords      = ["data-assimilation", "bayes-inference", "dynamical-system"]
+license       = "GPLv3"
+readme        = "README.md"
+categories    = ["algorithms", "science"]
+
 [dependencies]
 procedurals = "0.2.2"
 rand = "0.3"
