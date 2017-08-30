@@ -83,8 +83,8 @@ fn ssqrt_sampling_() {
     let w = ssqrt_sampling(&m);
     println!("w = {:?}", &w);
     // check sum of weight is one
-    println!("sum of weights = {:?}", w.mean(Axis(1)));
-    assert_close_l2!(&w.mean(Axis(1)), &v, 1e-7; "weight condition");
+    println!("sum of weights = {:?}", w.sum(Axis(1)));
+    assert_close_l2!(&w.sum(Axis(1)), &v, 1e-7; "weight condition");
     // check center
     let d = w.center() - &c;
     println!("w.center - c = {:?}", d);

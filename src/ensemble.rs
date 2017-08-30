@@ -119,9 +119,12 @@ pub fn ensemble_transform(ens: &Ensemble, pg: PGaussian) -> PGaussian {
 /// Sampling weights from Gaussian in weight space.
 /// Gaussian must have an eigenvector `(1, ..., 1)`.
 pub fn ssqrt_sampling(m: &M) -> Weights {
-    let km1 = m.size() as f64 - 1.0;
-    let ws = (km1 * &m.cov).ssqrt_into(UPLO::Upper).unwrap();
-    Weights(ws + &m.center)
+    let k = m.size() as f64;
+    let mut ws = ((k - 1.0) * &m.cov).ssqrt_into(UPLO::Upper).unwrap();
+    ws += &m.center;
+    let s = ws.subview(Axis(0), 0).scalar_sum();
+    ws += (1.0 - s) / k;
+    Weights(ws)
 }
 
 
