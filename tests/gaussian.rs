@@ -50,10 +50,8 @@ mod gaussian {
     fn merge() {
         let g1 = g();
         let g2 = g();
-        let mut g3 = &g1 * &g2;
+        let g3 = &g1 * &g2;
         println!("g3(E) = {:?}", &g3);
-        g3.as_m();
-        println!("g3(M) = {:?}", &g3);
         assert_close_l2!(&g3.center(), &center(), 1e-7);
         assert_close_l2!(&g3.cov(), &(0.5 * cov()), 1e-7);
     }
