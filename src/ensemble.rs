@@ -33,7 +33,7 @@ impl Ensemble {
 
     /// center of ensemble
     pub fn center(&self) -> Array1<R> {
-        self.0.mean(Axis(0))
+        self.0.mean_axis(Axis(0))
     }
 
     /// Calculate center and covariance matrix
@@ -79,7 +79,7 @@ impl Weights {
     }
 
     pub fn center(&self) -> Array1<R> {
-        self.0.mean(Axis(0))
+        self.0.mean_axis(Axis(0))
     }
 
     /// Calculate center and covariance matrix
@@ -130,7 +130,7 @@ pub fn ssqrt_sampling(m: &M) -> Weights {
 
 /// Calculate center and covariance matrix (assuming 0-index denotes ensemble)
 fn stat(a: &Array2<R>) -> (Array1<R>, Array2<R>) {
-    let c = a.mean(Axis(0));
+    let c = a.mean_axis(Axis(0));
     let dx = a - &c;
     let mut cov = dx.t().dot(&dx);
     let m = a.rows() as f64;
