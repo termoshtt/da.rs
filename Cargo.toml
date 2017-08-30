@@ -7,7 +7,7 @@ description   = "Data Assimilation in Rust"
 documentation = "https://docs.rs/da.rs"
 repository    = "https://github.com/termoshtt/da.rs"
 keywords      = ["data-assimilation", "bayes-inference", "dynamical-system"]
-license       = "GPLv3"
+license       = "GPL-3.0"
 readme        = "README.md"
 categories    = ["algorithms", "science"]
 
