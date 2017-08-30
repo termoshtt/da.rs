@@ -90,6 +90,12 @@ impl M {
     pub fn size(&self) -> usize {
         self.center.len()
     }
+
+    pub fn as_e(&self) -> E {
+        let prec = self.cov.invh().expect("Covariance matrix is singular");
+        let ab = prec.dot(&self.center);
+        E { ab, prec }
+    }
 }
 
 /// e-parameter as an exponential family
@@ -102,6 +108,12 @@ pub struct E {
 impl E {
     pub fn size(&self) -> usize {
         self.ab.len()
+    }
+
+    pub fn as_m(&self) -> M {
+        let cov = self.prec.invh().expect("Precision matrix is singular");
+        let center = cov.dot(&self.ab);
+        M { center, cov }
     }
 }
 
