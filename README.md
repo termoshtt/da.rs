@@ -7,4 +7,4 @@ da.rs: Data-Assimilation in Rust
 
 LICENCE
 -------
-GNU General Public License version 3
+MIT License
