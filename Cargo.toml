@@ -4,10 +4,10 @@ version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description   = "Data Assimilation in Rust"
-documentation = "https://docs.rs/da.rs"
-repository    = "https://github.com/termoshtt/da.rs"
+documentation = "https://docs.rs/dars"
+repository    = "https://github.com/termoshtt/dars"
 keywords      = ["data-assimilation", "bayes-inference", "dynamical-system"]
-license       = "GPL-3.0"
+license       = "MIT"
 readme        = "README.md"
 categories    = ["algorithms", "science"]
 
