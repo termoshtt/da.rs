@@ -1,7 +1,5 @@
 use ndarray::*;
 use ndarray_linalg::*;
-use ndarray_rand::RandomExt;
-use rand::distributions::*;
 
 use super::gaussian::*;
 use super::types::*;
@@ -50,8 +48,7 @@ impl Ensemble {
     /// Generate ensemble as an isotropic Gaussian distribution
     pub fn isotropic_gaussian<S: Data<Elem = R>>(center: &ArrayBase<S, Ix1>, size: usize, noise: R) -> Ensemble {
         let n = center.len();
-        let dist = Normal::new(0.0, noise);
-        let dx = Array::random((size, n), dist);
+        let dx = noise * random((size, n));
         Ensemble(dx + center)
     }
 }
