@@ -1,0 +1,114 @@
+\documentclass{article}
+
+\usepackage{hyperref}
+\usepackage[capitalise]{cleveref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{lightgray}{gray}{0.9}
+\lstset{showstringspaces=false,
+        basicstyle=\ttfamily,
+        keywordstyle=\color{blue},
+        commentstyle=\color[grey]{0.6},
+        stringstyle=\color[RGB]{255,150,75}
+}
+
+\newcommand{\inlinecode}[1]{\colorbox{lightgray}{\lstinline$#1$}}
+\newcommand{\rust}[1]{\colorbox{lightgray}{\lstinline[language=Rust]$#1$}}
+\newcommand{\docref}[2]{\href{https://docs.rs/dars/*/dars/#2}{\rust{#1}}}
+\newcommand{\modref}[1]{\docref{dars::#1}{#1/index.html}}
+\newcommand{\structref}[2]{\docref{dars::#1::#2}{#1/struct.#2.html}}
+
+\newcommand{\set}[1]{\left\{ #1 \right\}}
+\newcommand{\Set}[2]{\left\{ #1 \middle| #2 \right\}}
+
+\newcommand{\Normal}{\mathcal{N}}
+\newcommand{\Real}{\mathbb{R}}
+
+\begin{document}
+\title{da.rs: Data-Assimilation in Rust}
+\author{@termoshtt}
+\maketitle
+
+This document describes a mathematical concept of the data assimilation,
+and how it is implemented on this crate.
+
+\section{Probability Distribution}
+\subsection{Gaussian}
+A Normal distribution $\Normal(\mu, \Sigma)$, where $\mu$ denotes the center and $\Sigma$ denotes covariance matrix,
+is implemented in two forms:
+\begin{itemize}
+  \item Mixture (m-) representation \structref{gaussian}{M}
+  \item Exponential (e-) representation \structref{gaussian}{E}
+\end{itemize}
+Each representations are defined in the \modref{gaussian} module.
+Mixture representation is simple: it contains \rust{center} and covariance matrix \rust{cov}.
+
+\section{Ensemble Kalman Filter}
+The PDF is represented by an ensemble $\{ x_t^i \}$ ($i=1,2,\ldots, K$).
+Each of the ensemble member $x_t^i$ is also called ``particle'' and an element of the state space $\Real^N$.
+We consider a finite dimensional state space to establish a library for data-assimilation.
+Ensemble $\{ x_t^i \}$ is represented by a wrapper of two-dimensional array \structref{ensemble}{Ensemble} defined in \modref{ensemble}.
+
+\subsection{Ensemble-Transform Kalman Filter (ETKF)}
+Ensemble Space $E_t$ is defined for an ensemble  at time $t$:
+\begin{equation}
+  E_t = \Set{\sum_i w_i x_t^i}{\sum_i w_i = 1}
+\end{equation}
+This is an Affine sub-space of the state space $\Real^N$.
+Ensemble Transform Kalman Filter (ETKF) models the Bayesian update due to observations by an Affine transformation on $E_t$.
+Since an Affine transformation $(A, b)$ can be applied both to ensemble and Gaussian,
+we can find a transformation corresponds to a Bayesian update for a Gaussian.
+However, the number of Affine transformations corresponding to a Bayesian
+for a Gaussian update is not one due to the symmetry of the Gaussian distribution.
+Symmetric square-root algorithm (a.k.a.\ square-root filter) is often used to reduce this redundancy.
+\begin{enumerate}
+  \item Take a m-Projection $\set{x_t^i} \mapsto \Normal(\mu_t^b, \Sigma_t^b)$ 
+  \item Bayesian update $\Normal(\mu_t^b, \Sigma_t^b) \mapsto \Normal(\mu_t^a, \Sigma_t^a)$
+  \item Find an Affine transform $(A, b)$ s.t. $\mu_t^a = A \mu_t^b + b$, $\Sigma_t^a = A \Sigma_t^b A^T$
+  \item Apply the Affine transformation to the ensemble $\set{x_t^i} \mapsto \set{Ax_t^i + b}$
+\end{enumerate}
+For simple calculation, a weight space $S \subset \Real^K$ is used to be introduced:
+\begin{equation}
+  S = \Set{w \in \Real^K}{\sum_i w_i = 1}
+\end{equation}
+A injection $\phi_t: S \to E_t$ is an isomorphic linear transform:
+\begin{equation}
+  \phi_t: S \ni w \mapsto \sum_i w_i x_t^i \in E_t,
+\end{equation}
+and is represented by a matrix $\phi_t = (x_t^1 \cdots x_t^K)$.
+The inverse of this injection induces the m-projected Gaussian onto $S$,
+and it is represented by $\Normal(w_0, \Omega_0)$
+where $w_0 = (1/K, \ldots, 1/K){}^T$ and $\Omega_0 = (I - K w_0 w_0^T) / (K-1)$.
+This can be regarded as a projected distribution of $\Normal(0, I/(K-1))$ on $\Real^K$ using the projection $P_0 = I - K w_0 w_0^T: \Real^K \to S$.
+Then the Bayesian updated PDF $p(w | y)$ on $\Real^K$ is following\footnote{$\| x \|_A^2$ denotes $x^T A x$ for positive semi-definite symmetric matrix $A$}:
+\begin{align}
+  -2 \ln p(w|y) &= \| P_0(w-w_0) \|^2 + \| y - H \phi_t P_0 w \|_{R^{-1}}^2  + \text{const.}\\
+                &= \| P_0(w-\tilde{w}) \|_{\tilde\Omega^{-1}_t}^2 + \text{const.},
+\end{align}
+where $H$ is the observation operator whose domain is extended onto $\Real^K$ using the projection $P_0$, and\footnote{Be sure that
+  \begin{equation}
+    \| P_0 w - \tilde w \|_{\tilde\Omega_t^{-1}}^2 
+    = \| P_0 (w - \tilde w) \|_{\tilde\Omega_t^{-1}}^2  + \text{const.}
+  \end{equation}
+}.
+\begin{align}
+  \tilde\Omega_t^{-1} &= \frac{1}{K-1} I + Y_t^T R^{-1} Y_t \\
+  \tilde{w} &= \tilde\Omega_t Y_t^T R^{-1} (y - Y_t w_0) \\
+  Y_t &= H\phi_t P_0.
+\end{align}
+Once we obtain a Gaussian $\Normal(\tilde{w}, \tilde\Omega_t)$ on $\Real^K$,
+we seek an Affine transformation $(A, b)$ corresponding to the Bayesian update
+$\Normal(0, I/(K-1)) \mapsto \Normal(\tilde{w}, \tilde\Omega_t)$ and project it onto $S$.
+The correspondence condition of Affine transformation is following:
+\begin{align}
+  \tilde{w}  &= b\\
+  \tilde\Omega_t &= \frac{1}{K-1} A A^T
+\end{align}
+The redundancy of the Affine transformation is represented this condition,
+and we use symmetric square root in \href{https://docs.rs/ndarray-linalg/0.7.1/ndarray_linalg/eigh/trait.SymmetricSqrt.html}{ndarray-linalg crate} $A = \sqrt[S]{(K-1) \tilde\Omega}$.
+Finally, it induces an Affine transformation $(\phi_t P_0 A, \phi_t P_0 b)$ on $E_t$.
+
+\end{document}
