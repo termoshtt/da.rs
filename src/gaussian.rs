@@ -12,7 +12,7 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
-use super::types::R;
+use super::*;
 
 /// m-parameter form of Gaussian
 #[derive(Debug, Clone)]

@@ -1,5 +1,4 @@
-use super::{ensemble, gaussian};
-use super::types::*;
+use super::*;
 
 use ndarray::*;
 use std::ops::Deref;

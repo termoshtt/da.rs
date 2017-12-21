@@ -1,7 +1,5 @@
+use super::*;
 use ndarray::*;
-
-use super::gaussian;
-use super::types::*;
 
 /// Ensemble as two-dimensional array
 #[derive(Debug, Clone, NewType)]
