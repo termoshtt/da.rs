@@ -26,7 +26,7 @@ impl M {
         self.center.len()
     }
 
-    pub fn as_e(&self) -> E {
+    pub fn to_e(&self) -> E {
         let prec = self.cov.invh().expect("Covariance matrix is singular");
         let ab = prec.dot(&self.center);
         E { ab, prec }
@@ -45,7 +45,7 @@ impl E {
         self.ab.len()
     }
 
-    pub fn as_m(&self) -> M {
+    pub fn to_m(&self) -> M {
         let cov = self.prec.invh().expect("Precision matrix is singular");
         let center = cov.dot(&self.ab);
         M { center, cov }
