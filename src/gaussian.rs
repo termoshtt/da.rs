@@ -1,13 +1,4 @@
 //! Normal distribution (a.k.a. Gaussian) as an exponential family distribution
-//!
-//! Two forms of Gaussian are implemented:
-//!
-//! - natural (m-) parameter, i.e. mean and covariance matrix
-//! - e-parameter for calculating the multiplication of two Gaussian
-//!
-//! These forms are natural in the information-geometric context.
-//! Each forms represents Gaussian, and can be converted each other.
-//! Conversion cost is in the order of `O(N^2)` since it calculates an inverse matrix.
 
 use ndarray::*;
 use ndarray_linalg::*;

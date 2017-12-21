@@ -3,11 +3,12 @@ use super::*;
 use ndarray::*;
 use std::ops::Deref;
 
+/// Linear observation operator, and Gaussian observation noise
 pub struct LinearNormal {
     /// Precision matrix of the observation noise covariance matrix
-    rinv: Array2<R>,
+    pub rinv: Array2<R>,
     /// Observation operator
-    h: Array2<R>,
+    pub h: Array2<R>,
 }
 
 impl LinearNormal {
@@ -15,8 +16,8 @@ impl LinearNormal {
         let (c, dx) = xs.deviation();
         let ys = self.h.dot(&dx); // Y
         let yr = ys.t().dot(&self.rinv); // YR^{-1}
-        let dy = self.h.dot(&c) - y.deref();
-        let ab = -yr.dot(&dy);
+        let mdy = self.h.dot(&c) - y.deref(); // -dy
+        let ab = -yr.dot(&mdy);
         let prec = yr.dot(&ys);
         gaussian::E { ab, prec }
     }
