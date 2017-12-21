@@ -14,10 +14,12 @@ use ndarray_linalg::*;
 
 use super::types::R;
 
-/// natural (m-) parameter form of Gaussian
+/// m-parameter form of Gaussian
 #[derive(Debug, Clone)]
 pub struct M {
+    /// Center of Gaussian
     pub center: Array1<R>,
+    /// Covariance matrix of Gaussian
     pub cov: Array2<R>,
 }
 
@@ -37,6 +39,7 @@ impl M {
 #[derive(Debug, Clone)]
 pub struct E {
     pub ab: Array1<R>,
+    /// Precision matrix (inverse of the covariance matrix) of Gaussian
     pub prec: Array2<R>,
 }
 

@@ -1,5 +1,4 @@
 use ndarray::*;
-use ndarray_linalg::*;
 
 use super::gaussian;
 use super::types::*;
@@ -30,14 +29,19 @@ impl Ensemble {
     }
 
     /// center of ensemble
-    pub fn center(&self) -> Array1<R> {
-        self.0.mean_axis(Axis(0))
+    pub fn center(&self) -> State {
+        self.0.mean_axis(Axis(0)).into()
+    }
+
+    pub(crate) fn deviation(&self) -> (Array1<R>, Array2<R>) {
+        let c = self.center().into();
+        let dx = &self.0 - &c;
+        (c, dx)
     }
 
     /// m-Projection onto a normal distribution
     pub fn to_m(&self) -> gaussian::M {
-        let c = self.center();
-        let dx = &self.0 - &c;
+        let (c, dx) = self.deviation();
         let mut cov = dx.t().dot(&dx);
         let k = self.size() as f64;
         cov *= 1.0 / (k - 1.0);

@@ -8,4 +8,5 @@ extern crate ndarray_linalg;
 
 pub mod gaussian;
 pub mod ensemble;
+pub mod observation;
 pub mod types;
