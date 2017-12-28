@@ -1,11 +1,17 @@
 use super::*;
 use ndarray::*;
+use ndarray_linalg::*;
 
 /// Ensemble as two-dimensional array
 #[derive(Debug, Clone, NewType)]
 pub struct Ensemble(Array2<R>);
 
 impl Ensemble {
+    /// Generate random ensemble
+    pub fn random(size: usize, dim: usize) -> Self {
+        Ensemble(random((size, dim)))
+    }
+
     /// size of ensemble
     pub fn size(&self) -> usize {
         self.0.rows()

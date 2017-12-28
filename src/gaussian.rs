@@ -15,6 +15,12 @@ pub struct M {
 }
 
 impl M {
+    pub fn random(n: usize) -> Self {
+        let cov = random_hpd(n);
+        let center = random(n);
+        Self { center, cov }
+    }
+
     pub fn size(&self) -> usize {
         self.center.len()
     }
@@ -35,6 +41,12 @@ pub struct E {
 }
 
 impl E {
+    pub fn random(n: usize) -> Self {
+        let prec = random_hpd(n);
+        let ab = random(n);
+        Self { ab, prec }
+    }
+
     pub fn size(&self) -> usize {
         self.ab.len()
     }
