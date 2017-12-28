@@ -2,7 +2,6 @@ use super::*;
 
 use ndarray::*;
 use ndarray_linalg::*;
-use std::ops::Deref;
 
 /// Linear observation operator, and Gaussian observation noise
 pub struct LinearNormal {
@@ -13,6 +12,11 @@ pub struct LinearNormal {
 }
 
 impl LinearNormal {
+    /// Apply observation operator without noise
+    pub fn no_noise(&self, st: &State) -> Obs {
+        self.h.dot(&st.0).into()
+    }
+
     /// Size of state vector
     pub fn state_size(&self) -> usize {
         self.h.cols()
@@ -50,9 +54,9 @@ impl LinearNormal {
     /// Increment in ensemble space
     pub fn et_increment(&self, xs: &ensemble::Ensemble, y: &Obs) -> gaussian::E {
         let (c, dx) = xs.deviation();
-        let ys = self.h.dot(&dx); // Y
+        let ys = self.h.dot(&dx.t()); // Y
         let yr = ys.t().dot(&self.rinv); // YR^{-1}
-        let mdy = self.h.dot(&c) - y.deref(); // -dy
+        let mdy = self.h.dot(&c) - &y.0; // -dy
         let ab = -yr.dot(&mdy);
         let prec = yr.dot(&ys);
         gaussian::E { ab, prec }
