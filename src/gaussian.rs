@@ -22,6 +22,8 @@ impl M {
     }
 
     pub fn size(&self) -> usize {
+        assert_eq!(self.cov.cols(), self.cov.rows(), "Covariance matrix is not square");
+        assert_eq!(self.cov.cols(), self.center.len(), "Sizes of covariance matrix and center are inconsistent");
         self.center.len()
     }
 
@@ -48,6 +50,8 @@ impl E {
     }
 
     pub fn size(&self) -> usize {
+        assert_eq!(self.prec.cols(), self.prec.rows(), "Covariance matrix is not square");
+        assert_eq!(self.prec.cols(), self.ab.len(), "Sizes of covariance matrix and center are inconsistent");
         self.ab.len()
     }
 

@@ -13,10 +13,22 @@ pub struct LinearNormal {
 }
 
 impl LinearNormal {
+    /// Size of state vector
+    pub fn state_size(&self) -> usize {
+        self.h.cols()
+    }
+
+    /// Size of observation
+    pub fn obs_size(&self) -> usize {
+        assert_eq!(self.rinv.cols(), self.rinv.rows(), "Rinv is not square");
+        assert_eq!(self.rinv.cols(), self.h.rows(), "R and H are inconsistent");
+        self.h.rows()
+    }
+
     /// Construct new observation using random numbers
-    pub fn random(n: usize) -> Self {
-        let rinv = random_hpd(n);
-        let h = random((n, n));
+    pub fn random(state_size: usize, obs_size: usize) -> Self {
+        let rinv = random_hpd(obs_size);
+        let h = random((obs_size, state_size));
         Self { rinv, h }
     }
 
