@@ -8,18 +8,18 @@ pub struct Ensemble(Array2<R>);
 
 impl Ensemble {
     /// Generate random ensemble
-    pub fn random(size: usize, dim: usize) -> Self {
-        Ensemble(random((size, dim)))
+    pub fn random(size: EnsembleSize, dim: StateSize) -> Self {
+        Ensemble(random((size.0, dim.0)))
     }
 
     /// size of ensemble
-    pub fn size(&self) -> usize {
-        self.0.rows()
+    pub fn size(&self) -> EnsembleSize {
+        self.0.rows().into()
     }
 
     /// size of each state vector
-    pub fn dim(&self) -> usize {
-        self.0.cols()
+    pub fn dim(&self) -> StateSize {
+        self.0.cols().into()
     }
 
     /// immutable ensemble iterator
@@ -44,11 +44,11 @@ impl Ensemble {
     }
 
     /// m-Projection onto a normal distribution
-    pub fn to_m(&self) -> gaussian::M {
+    pub fn to_m(&self) -> gaussian::M<StateSize> {
         let (c, dx) = self.deviation();
         let mut cov = dx.t().dot(&dx);
-        let k = self.size() as f64;
+        let k = self.size().0 as f64;
         cov *= 1.0 / (k - 1.0);
-        gaussian::M { center: c, cov }
+        gaussian::M::new(c, cov)
     }
 }
