@@ -16,3 +16,4 @@ procedurals = "0.3"
 num-complex = "0.1"
 ndarray = "0.10"
 ndarray-linalg = { version = "0.8", features = ["openblas"] }
+derive-new = "0.5.0"
