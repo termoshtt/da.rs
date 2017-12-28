@@ -37,7 +37,7 @@ impl Ensemble {
         self.0.mean_axis(Axis(0)).into()
     }
 
-    pub(crate) fn deviation(&self) -> (Array1<R>, Array2<R>) {
+    pub fn deviation(&self) -> (Array1<R>, Array2<R>) {
         let c = self.center().into();
         let dx = &self.0 - &c;
         (c, dx)

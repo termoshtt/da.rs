@@ -22,6 +22,20 @@ pub type C = Complex<f64>;
 #[derive(Debug, Clone, NewType)]
 pub struct State(Array1<R>);
 
+impl State {
+    /// Generate random state
+    pub fn random(n: usize) -> Self {
+        ndarray_linalg::random(n).into()
+    }
+}
+
 /// Obverstion
 #[derive(Debug, Clone, NewType)]
 pub struct Obs(Array1<R>);
+
+impl Obs {
+    /// Generate random observation
+    pub fn random(n: usize) -> Self {
+        ndarray_linalg::random(n).into()
+    }
+}

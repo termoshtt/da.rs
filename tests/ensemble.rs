@@ -24,6 +24,16 @@ fn shape() {
 }
 
 #[test]
+fn shape_dx() {
+    let size = 10; // ensemble size
+    let dim = 2; // dimension of each state
+    let xs = Ensemble::random(size, dim);
+    let (c, dx) = xs.deviation();
+    assert_eq!(c.len(), dim, "size of state is invalid");
+    assert_eq!(dx.shape(), [size, dim], "size of state is invalid");
+}
+
+#[test]
 fn iter(){
     let size = 10; // ensemble size
     let dim = 2; // dimension of each state
