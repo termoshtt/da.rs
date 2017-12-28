@@ -2,26 +2,26 @@
 extern crate dars;
 
 use dars::*;
-use dars::observation::*;
 use dars::ensemble::*;
+use dars::observation::*;
 
 #[test]
 fn size_random() {
-    let state_size = 4;
-    let obs_size = 3;
+    let state_size: StateSize = 4.into();
+    let obs_size: ObsSize = 3.into();
     let op = LinearNormal::random(state_size, obs_size);
     assert_eq!(op.state_size(), state_size, "State size mismatch");
     assert_eq!(op.obs_size(), obs_size, "State size mismatch");
 
     let state = State::random(state_size);
     let obs = op.no_noise(&state);
-    assert_eq!(obs.len(), obs_size, "Size of observation is mismatch");
+    assert_eq!(obs.size(), obs_size, "Size of observation is mismatch");
 }
 
 #[test]
 fn size_increment() {
-    let state_size = 4;
-    let obs_size = 3;
+    let state_size: StateSize = 4.into();
+    let obs_size: ObsSize = 3.into();
     let op = LinearNormal::random(state_size, obs_size);
     let obs = Obs::random(obs_size);
     let e = op.increment(&obs);
@@ -30,9 +30,9 @@ fn size_increment() {
 
 #[test]
 fn size_et_increment() {
-    let state_size = 20;
-    let obs_size = 3;
-    let ens_size = 10;
+    let state_size: StateSize = 20.into();
+    let obs_size: ObsSize = 3.into();
+    let ens_size: EnsembleSize = 10.into();
     let ens = Ensemble::random(ens_size, state_size);
     let op = LinearNormal::random(state_size, obs_size);
     let obs = Obs::random(obs_size);
